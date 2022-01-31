@@ -34,9 +34,9 @@ QEMU_DEVICES+= -device pcie-root-port,id=rp3,multifunction=off,chassis=2,slot=3,
 QEMU_DEVICES+= -device virtio-tablet,bus=rp1,id=tablet
 QEMU_DEVICES+= -device virtio-gpu-pci,bus=rp2,id=gpu
 QEMU_DEVICES+= -device virtio-rng-pci-non-transitional,bus=rp1,id=rng
-QEMU_DEVICES+= -device virtio-blk-pci-non-transitional,drive=foo,bus=rp2,id=blk
+QEMU_DEVICES+= -device virtio-blk-pci-non-transitional,drive=hdd,bus=rp2,id=blk
 QEMU_DEVICES+= -device qemu-xhci,bus=rp3,id=usbhost
-QEMU_DEVICES+= -drive if=none,format=raw,file=$(QEMU_HARD_DRIVE),id=foo
+QEMU_DEVICES+= -drive if=none,format=raw,file=$(QEMU_HARD_DRIVE),id=hdd
 all: $(KERNEL)
 include $(wildcard $(DEP_DIR)/*.d)
 run: $(KERNEL)
@@ -44,7 +44,7 @@ run: $(KERNEL)
 	$(QEMU) -nographic -bios $(QEMU_BIOS) -d $(QEMU_DEBUG) -cpu $(QEMU_CPU) -machine $(QEMU_MACH) -smp $(QEMU_CPUS) -m $(QEMU_MEM) -kernel $(QEMU_KERNEL) $(QEMU_OPTIONS) $(QEMU_DEVICES)
 rungui: $(KERNEL)
 	$(MAKE) -C sbi
-	$(QEMU) -nographic -bios $(QEMU_BIOS) -d $(QEMU_DEBUG) -cpu $(QEMU_CPU) -machine $(QEMU_MACH) -smp $(QEMU_CPUS) -m $(QEMU_MEM) -kernel $(QEMU_KERNEL) $(QEMU_OPTIONS) $(QEMU_DEVICES)
+	$(QEMU) -bios $(QEMU_BIOS) -d $(QEMU_DEBUG) -cpu $(QEMU_CPU) -machine $(QEMU_MACH) -smp $(QEMU_CPUS) -m $(QEMU_MEM) -kernel $(QEMU_KERNEL) $(QEMU_OPTIONS) $(QEMU_DEVICES)
 $(KERNEL): $(OBJECTS) lds/riscv.lds
 	$(CC) $(LDFLAGS) -o $@ $(OBJECTS) $(LIBS)
 $(OBJ_DIR)/%.o: $(SOURCE_DIR)/%.c Makefile
