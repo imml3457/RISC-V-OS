@@ -16,6 +16,7 @@ OBJECTS=$(patsubst $(SOURCE_DIR)/%.c,$(OBJ_DIR)/%.o,$(SOURCES))
 OBJECTS+= $(patsubst $(ASM_DIR)/%.S,$(OBJ_DIR)/%.o,$(SOURCES_ASM))
 DEPS=$(patsubst $(SOURCE_DIR)/%.c,$(DEP_DIR)/%.d,$(SOURCES))
 KERNEL=cosc562.elf
+SBI_KERNEL=sbi.elf
 #### QEMU STUFF
 QEMU?=qemu-system-riscv64
 QEMU_DEBUG_PIPE=debug.pipe
@@ -38,6 +39,7 @@ QEMU_DEVICES+= -device virtio-blk-pci-non-transitional,drive=hdd,bus=rp2,id=blk
 QEMU_DEVICES+= -device qemu-xhci,bus=rp3,id=usbhost
 QEMU_DEVICES+= -drive if=none,format=raw,file=$(QEMU_HARD_DRIVE),id=hdd
 all: $(KERNEL)
+	$(MAKE) -C sbi
 include $(wildcard $(DEP_DIR)/*.d)
 run: $(KERNEL)
 	$(MAKE) -C sbi
@@ -45,14 +47,18 @@ run: $(KERNEL)
 rungui: $(KERNEL)
 	$(MAKE) -C sbi
 	$(QEMU) -bios $(QEMU_BIOS) -d $(QEMU_DEBUG) -cpu $(QEMU_CPU) -machine $(QEMU_MACH) -smp $(QEMU_CPUS) -m $(QEMU_MEM) -kernel $(QEMU_KERNEL) $(QEMU_OPTIONS) $(QEMU_DEVICES)
+
 $(KERNEL): $(OBJECTS) lds/riscv.lds
 	$(CC) $(LDFLAGS) -o $@ $(OBJECTS) $(LIBS)
 $(OBJ_DIR)/%.o: $(SOURCE_DIR)/%.c Makefile
 	$(CC) -MD -MF ./deps/$*.d $(CFLAGS) -o $@ -c $<
 $(OBJ_DIR)/%.o: $(ASM_DIR)/%.S Makefile
 	$(CC) $(CFLAGS) -o $@ -c $<
-.PHONY: clean gdb run rungui
+
+
+.PHONY: clean gdb run rungui sbi
 gdb: $(KERNEL)
 	$(GDB) $< -ex "target extended-remote $(QEMU_DEBUG_PIPE)"
 clean:
+	$(MAKE) -C sbi clean
 	rm -f $(OBJ_DIR)/*.o $(DEP_DIR)/*.d $(KERNEL)
