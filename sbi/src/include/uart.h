@@ -1,7 +1,7 @@
+#pragma once
+
 #ifndef __UART_H__
 #define __UART_H__
-
-
 
 enum MMIO_UART {
     UART_BASE = 0x10000000,

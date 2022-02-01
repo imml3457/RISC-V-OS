@@ -1,4 +1,4 @@
-#include "uart.h"
+#include <uart.h>
 
 // UART BASE 0x1000_0000
 //1 byte registers
@@ -11,18 +11,14 @@ void uart_init(void){
 
     uart[UART_FCR] = 1;
 
-    uart[UART_IER] = 1;
-
-    uart[UART_LCR] |= 1 << 7;
-    uart[UART_TXRX] = 80;
-    uart[UART_IER] = 2;
-    uart[UART_LCR] &= ~(1 << 7);
+/*     uart[UART_IER] = 1; */
 
 }
 
 void uart_write(const char *s){
-    while (*s++){
+    while (*s){
         uart_put(*s);
+        s++;
     }
 }
 
