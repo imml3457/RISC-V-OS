@@ -1,5 +1,7 @@
 #pragma once
 
+#include <common.h>
+
 #ifndef __UART_H__
 #define __UART_H__
 
@@ -17,8 +19,8 @@ void uart_init(void);
 
 void uart_write(const char *s);
 
-void uart_put(char c);
+void uart_put(u8 c);
 
-char uart_get(void);
+u8 uart_get(void);
 
 #endif

@@ -1,19 +1,16 @@
 #include <uart.h>
+#include <kprint.h>
+#include <plic.h>
 
 int main(int hart){
     while(hart != 0);
 
     uart_init();
-    uart_write("hello world\n\n");
 
+    plic_init();
 
-    while(1){
-        char c;
-        if ((c = uart_get()) != 0xff){
-            uart_write("I got a character: ");
-            uart_put(c);
-            uart_put('\n');
-        }
-    }
+    kprint_set_putc(uart_put);
+    kprint_set_getc(uart_get);
+
     return 0;
 }

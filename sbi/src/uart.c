@@ -11,7 +11,7 @@ void uart_init(void){
 
     uart[UART_FCR] = 1;
 
-/*     uart[UART_IER] = 1; */
+    uart[UART_IER] = 1;
 
 }
 
@@ -22,7 +22,7 @@ void uart_write(const char *s){
     }
 }
 
-void uart_put(char c){
+void uart_put(u8 c){
     volatile unsigned char *uart = (unsigned char *)UART_BASE;
     //check to see if trasmitter is empty
     //if so send it
@@ -32,7 +32,7 @@ void uart_put(char c){
 
 }
 
-char uart_get(void){
+u8 uart_get(void){
     volatile unsigned char *uart = (unsigned char *)UART_BASE;
 
     if(!(uart[UART_LSR] & 1)) {

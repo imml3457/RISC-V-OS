@@ -7,10 +7,15 @@ _start:
         mul         t0, t0, a0
         sub         sp, sp, t0
 
+        la          ra, park
         la          t1, main
         csrw        mepc, t1
         li          t1, (3 << 11) | (1 << 7)
         csrw        mstatus, t1
+        li          t1, (1 << 11)
+        csrw        mie, t1
+        la          t1, sbi_trap_vector
+        csrw        mtvec, t1
         mret
 
 
