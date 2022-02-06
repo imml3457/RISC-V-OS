@@ -4,12 +4,11 @@
 #include <csr.h>
 #include <common.h>
 
-
 //mostly used for OS
 struct trapframe{
-    s32 gpregs[32];
-    s32 fpregs[32];
-    u32 pc;
+    u64 gpregs[32];
+    u64 fpregs[32];
+    u64 pc;
 };
 
 #endif
