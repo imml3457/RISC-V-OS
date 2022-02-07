@@ -4,6 +4,8 @@
 #include <pmp.h>
 #include <trap.h>
 
+struct trapframe SBI_GPREGS[8];
+
 int main(int hart){
     while(hart != 0){
         asm volatile ("wfi");

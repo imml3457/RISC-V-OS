@@ -4,6 +4,8 @@
 // UART BASE 0x1000_0000
 //1 byte registers
 
+//ringbuffer section
+
 
 void uart_init(void){
     volatile unsigned char *uart = (unsigned char *)UART_BASE;
@@ -49,8 +51,9 @@ u8 uart_get(void){
 
 
 void uart_handle_irq(void){
-    char c = uart_get();
-    kprint("uart got %d (%d)\n", c, c);
+    char c;
+
+    while((c = uart_get()) != 0xff);
     //hey this should be ringbuffer
 
 }

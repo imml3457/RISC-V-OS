@@ -12,10 +12,9 @@ struct trapframe{
     u64 pc;
 };
 
-struct trapframe SBI_GPREGS[8];
+extern struct trapframe SBI_GPREGS[8];
 
 void unhandled_irq(u64, u64);
-
 
 extern void (*irq_table[])(u64, u64);
 

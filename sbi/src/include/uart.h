@@ -1,9 +1,7 @@
-#pragma once
-
-#include <common.h>
-
 #ifndef __UART_H__
 #define __UART_H__
+
+#include <common.h>
 
 enum MMIO_UART {
     UART_BASE = 0x10000000,
