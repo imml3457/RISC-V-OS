@@ -1,4 +1,6 @@
 #include <plic.h>
+#include <uart.h>
+#include <kprint.h>
 
 void plic_set_priority(int interrupt_id, u8 priority)
 {
@@ -35,4 +37,21 @@ void plic_init(){
     plic_enable(0, 10);
     plic_set_priority(10, 7);
     plic_set_threshold(0, 0);
+}
+
+void plic_handle_irq(int hart){
+
+    u32 irq = plic_claim(hart);
+
+    kprint("I made it to the plic with hart %d and irq %u\n", hart, irq);
+    switch (irq){
+        case 10:
+            uart_handle_irq();
+            plic_complete(hart, irq);
+            break;
+        default:
+            break;
+
+    }
+
 }

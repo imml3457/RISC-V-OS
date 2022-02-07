@@ -11,4 +11,8 @@ struct trapframe{
     u64 pc;
 };
 
+
+
+struct trapframe SBI_GPREGS[8];
+
 #endif

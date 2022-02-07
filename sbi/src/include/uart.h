@@ -23,4 +23,6 @@ void uart_put(u8 c);
 
 u8 uart_get(void);
 
+void uart_handle_irq(void);
+
 #endif

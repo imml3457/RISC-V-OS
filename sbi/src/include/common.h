@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 
+
 #define NULL ((void*)0)
 
 #define UINT(w) uint##w##_t

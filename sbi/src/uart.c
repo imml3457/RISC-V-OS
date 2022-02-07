@@ -1,4 +1,5 @@
 #include <uart.h>
+#include <kprint.h>
 
 // UART BASE 0x1000_0000
 //1 byte registers
@@ -44,4 +45,12 @@ u8 uart_get(void){
         //this actually holds the character (in 8 bits)
         return uart[UART_TXRX];
     }
+}
+
+
+void uart_handle_irq(void){
+    char c = uart_get();
+    kprint("uart got %d (%d)\n", c, c);
+    //hey this should be ringbuffer
+
 }
