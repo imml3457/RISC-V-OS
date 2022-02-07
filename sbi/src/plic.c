@@ -2,6 +2,11 @@
 #include <uart.h>
 #include <kprint.h>
 
+
+
+
+
+
 void plic_set_priority(int interrupt_id, u8 priority)
 {
     u32 *base = (u32 *)PLIC_PRIORITY(interrupt_id);
@@ -43,7 +48,6 @@ void plic_handle_irq(u64 cause, u64 hart){
     (void) cause;
     u32 irq = plic_claim(hart);
 
-    kprint("I made it to the plic with hart %d and irq %u\n", hart, irq);
     switch (irq){
         case 10:
             uart_handle_irq();
@@ -53,5 +57,4 @@ void plic_handle_irq(u64 cause, u64 hart){
             break;
 
     }
-
 }

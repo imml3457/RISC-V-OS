@@ -11,7 +11,7 @@ _start:
         la     t0, asm_trap_vector
         csrw   stvec, t0
         li     t0, 1 << 9
-        csrw   sip, t0
+        csrw   sie, t0
         li     t0, (1 << 13) | (1 << 8) | (1 << 5)
         csrw   sstatus, t0
         la     ra, park
@@ -22,4 +22,3 @@ _start:
 park:
         wfi
         j           park
-

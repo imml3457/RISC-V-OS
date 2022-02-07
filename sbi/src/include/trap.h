@@ -5,7 +5,6 @@
 #include <common.h>
 
 #define MAX_IRQ 14
-#define PLIC_IRQ 11
 //mostly used for OS
 struct trapframe{
     u64 gpregs[32];
