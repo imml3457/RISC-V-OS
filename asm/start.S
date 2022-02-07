@@ -15,7 +15,7 @@ _start:
         li     t0, (1 << 13) | (1 << 8) | (1 << 5)
         csrw   sstatus, t0
         la     ra, park
-
+        csrr   a0, sscratch
         sret
 
 .global park

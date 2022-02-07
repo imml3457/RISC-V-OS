@@ -1,13 +1,31 @@
 #include <trap.h>
 #include <kprint.h>
 #include <plic.h>
-
+#include <syscall.h>
 
 void unhandled_irq(u64 cause, u64 hartid){
     kprint("get gud I haven't handled this yed %U on hart %U\n", cause, hartid);
 }
 
 void (*irq_table[])(u64, u64) = {
+    //sync
+    unhandled_irq,
+    unhandled_irq,
+    unhandled_irq,
+    unhandled_irq,
+    unhandled_irq,
+    unhandled_irq,
+    unhandled_irq,
+    unhandled_irq,
+    unhandled_irq,
+    syscall_handle,
+    unhandled_irq,
+    unhandled_irq,
+    unhandled_irq,
+    unhandled_irq,
+    unhandled_irq,
+    unhandled_irq,
+    // async
     unhandled_irq,        //0
     unhandled_irq,
     unhandled_irq,
@@ -20,10 +38,6 @@ void (*irq_table[])(u64, u64) = {
     unhandled_irq,        //9
     unhandled_irq,
     plic_handle_irq,        //plic_irq
-    unhandled_irq,
-    unhandled_irq,
-    unhandled_irq,
-    unhandled_irq
 };
 
 
@@ -48,6 +62,10 @@ void c_trap_handler(void){
     //i guess you can use a switch, but that shit is ugly
 
     if (async_flag){
+        handle_irq(mcause + 16, mhartid);
+    }
+
+    else{
         handle_irq(mcause, mhartid);
     }
 

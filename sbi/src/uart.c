@@ -1,11 +1,13 @@
 #include <uart.h>
 #include <kprint.h>
+#include <ringbuf.h>
 
 // UART BASE 0x1000_0000
 //1 byte registers
 
 //ringbuffer section
 
+struct ring_buffer buf;
 
 void uart_init(void){
     volatile unsigned char *uart = (unsigned char *)UART_BASE;
@@ -15,6 +17,8 @@ void uart_init(void){
     uart[UART_FCR] = 1;
 
     uart[UART_IER] = 1;
+
+    ring_init(&buf);
 
 }
 
@@ -49,11 +53,22 @@ u8 uart_get(void){
     }
 }
 
+char uart_get_char(void){
+    char ret = 0xff;
+
+    ret = ring_pop(&buf);
+
+    return ret;
+
+}
+
 
 void uart_handle_irq(void){
     char c;
-
-    while((c = uart_get()) != 0xff);
+    while((c = uart_get()) != 0xff){
+        ring_push(c, &buf);
+        kprint("sussy man\n");
+    }
     //hey this should be ringbuffer
 
 }
