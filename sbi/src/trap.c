@@ -2,11 +2,42 @@
 #include <kprint.h>
 #include <plic.h>
 
+
+void unhandled_irq(u64 cause, u64 hartid){
+    kprint("get gud I haven't handled this yed %U on hart %U\n", cause, hartid);
+}
+
+void (*irq_table[])(u64, u64) = {
+    unhandled_irq,        //0
+    unhandled_irq,
+    unhandled_irq,
+    unhandled_irq,
+    unhandled_irq,        //4
+    unhandled_irq,
+    unhandled_irq,
+    unhandled_irq,
+    unhandled_irq,
+    unhandled_irq,        //9
+    unhandled_irq,
+    plic_handle_irq,        //plic_irq
+    unhandled_irq,
+    unhandled_irq,
+    unhandled_irq,
+    unhandled_irq
+};
+
+
+
+void handle_irq(u64 cause, u64 hartid){
+    irq_table[cause](cause, hartid);
+}
+
+
 void c_trap_handler(void){
 
     //getting the cause of the trap
-    s64 mcause;
-    s64 mhartid;
+    u64 mcause;
+    u64 mhartid;
     CSR_READ(mcause, "mcause");
     CSR_READ(mhartid, "mhartid");
 
@@ -17,15 +48,7 @@ void c_trap_handler(void){
     //i guess you can use a switch, but that shit is ugly
 
     if (async_flag){
-        switch (mcause) {
-            case 11:
-                plic_handle_irq(mhartid);
-                break;
-            default:
-                kprint("unhandled async interrupt %I\n", mcause);
-                break;
-        }
-
+        handle_irq(mcause, mhartid);
     }
 
 }
