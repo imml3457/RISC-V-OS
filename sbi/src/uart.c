@@ -8,6 +8,8 @@
 //ringbuffer section
 
 struct ring_buffer buf;
+Mutex mutex;
+
 
 void uart_init(void){
     volatile unsigned char *uart = (unsigned char *)UART_BASE;
@@ -53,11 +55,9 @@ u8 uart_get(void){
     }
 }
 
-char uart_get_char(void){
-    char ret = 0xff;
-
-    ret = ring_pop(&buf);
-
+u8 uart_get_char(void){
+    u8 ret;
+    ret = ring_pop(&buf, mutex);
     return ret;
 
 }
@@ -66,8 +66,7 @@ char uart_get_char(void){
 void uart_handle_irq(void){
     char c;
     while((c = uart_get()) != 0xff){
-        ring_push(c, &buf);
-        kprint("sussy man\n");
+        ring_push(c, &buf, mutex);
     }
     //hey this should be ringbuffer
 

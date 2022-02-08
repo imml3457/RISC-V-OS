@@ -6,35 +6,50 @@ void ring_init(struct ring_buffer* buf){
 }
 
 
-void ring_push(char c, struct ring_buffer* buf){
+void ring_push(u8 c, struct ring_buffer* buf, Mutex mutex){
+    mutex_spinlock(&mutex);
     if(buf->len < UART_BUFFER_SIZE){
         u32 tmp = (buf->head - buf->ringbuf + buf->len) % UART_BUFFER_SIZE;
         buf->ringbuf[tmp] = c;
         buf->len++;
     }
-    else{
-        u32 tmp = (buf->head - buf->ringbuf + buf->len) % UART_BUFFER_SIZE;
-        buf->ringbuf[tmp] = c;
-        if(buf->head == (buf->ringbuf + UART_BUFFER_SIZE)){
-            buf->head = buf->ringbuf;
-        }
-        else{
-            buf->head += sizeof(char);
-        }
-    }
+    //might be used later
+/*     else{ */
+/*         u32 tmp = (buf->head - buf->ringbuf + buf->len) % UART_BUFFER_SIZE; */
+/*         buf->ringbuf[tmp] = c; */
+/*         if(buf->head == (buf->ringbuf + UART_BUFFER_SIZE)){ */
+/*             buf->head = buf->ringbuf; */
+/*         } */
+/*         else{ */
+/*             buf->head += sizeof(char); */
+/*         } */
+/*     } */
+    mutex_unlock(&mutex);
 }
 
-char ring_pop(struct ring_buffer* buf){
-    char ret;
-    if(buf->head == (buf->ringbuf + UART_BUFFER_SIZE)){
-        ret = *(buf->head);
-        buf->head = buf->ringbuf;
-        buf->len--;
-    }
-    else{
+u8 ring_pop(struct ring_buffer* buf, Mutex mutex){
+    u8 ret = 0xff;
+    mutex_spinlock(&mutex);
+    if(buf->len > 0){
         ret = *(buf->head);
         buf->head = buf->head + 1;
         buf->len--;
     }
+
+//this method is for if we wanna wrap around
+/*     if(buf->head == (buf->ringbuf + UART_BUFFER_SIZE)){ */
+/*         ret = *(buf->head); */
+/*         buf->head = buf->ringbuf; */
+/*         buf->len--; */
+/*     } */
+/*     else if(buf->len > 0){ */
+/*         ret = 0xff; */
+/*     } */
+/*     else{ */
+/*         ret = *(buf->head); */
+/*         buf->head = buf->head + 1; */
+/*         buf->len--; */
+/*     } */
+    mutex_unlock(&mutex);
     return ret;
 }

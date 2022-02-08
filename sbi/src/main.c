@@ -21,6 +21,7 @@ int main(int hart){
     kprint_set_getc(uart_get);
     CSR_WRITE("mscratch", &SBI_GPREGS[hart].gpregs[0]);
 
+    CSR_WRITE("sscratch", hart);
 
     CSR_WRITE("mepc", 0x80050000UL);
     CSR_WRITE("mideleg", (1 << 1) | (1 << 5) | (1 << 7));
