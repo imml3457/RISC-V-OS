@@ -1,7 +1,7 @@
 #include <trap.h>
 #include <kprint.h>
 #include <plic.h>
-#include <syscall.h>
+#include <supcall.h>
 
 void unhandled_irq(u64 cause, u64 hartid){
     kprint("get gud I haven't handled this yed %U on hart %U\n", cause, hartid);
@@ -18,7 +18,7 @@ void (*irq_table[])(u64, u64) = {
     unhandled_irq,
     unhandled_irq,
     unhandled_irq,
-    syscall_handle,
+    supcall_handle,
     unhandled_irq,
     unhandled_irq,
     unhandled_irq,
@@ -55,8 +55,8 @@ void c_trap_handler(void){
     CSR_READ(mcause, "mcause");
     CSR_READ(mhartid, "mhartid");
 
-    u32 async_flag = (mcause >> 63) & 1;
-    mcause &= 0xff;
+    u32 async_flag = MCAUSE_IS_ASYNC(mcause);
+    mcause = MCAUSE_NUM(mcause);
 
     //use a table to determine the cause of the interrupt
     //i guess you can use a switch, but that shit is ugly

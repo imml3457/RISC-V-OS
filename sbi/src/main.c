@@ -3,14 +3,15 @@
 #include <plic.h>
 #include <pmp.h>
 #include <trap.h>
-
+#include <asm_common.h>
 struct trapframe SBI_GPREGS[8];
 
-int main(int hart){
+ATTR_NAKED_NORET
+void main(int hart){
     while(hart != 0){
         asm volatile ("wfi");
     }
-
+    clear_bss();
     uart_init();
 
     plic_init();
@@ -20,14 +21,12 @@ int main(int hart){
     kprint_set_putc(uart_put);
     kprint_set_getc(uart_get);
     CSR_WRITE("mscratch", &SBI_GPREGS[hart].gpregs[0]);
-
     CSR_WRITE("sscratch", hart);
-
-    CSR_WRITE("mepc", 0x80050000UL);
-    CSR_WRITE("mideleg", (1 << 1) | (1 << 5) | (1 << 7));
-    CSR_WRITE("medeleg", 0xB1FF);
-    CSR_WRITE("mstatus", (1 << 13) | (1 << 11) | (1 << 7));
-
+    CSR_WRITE("mepc", OS_LOAD_ADDR);
+    CSR_WRITE("mtvec", sbi_trap_vector);
+    CSR_WRITE("mie", SET_MIE_MEIE | SET_MIE_MTIE | SET_MIE_MSIE);
+    CSR_WRITE("mideleg", SET_MIP_SEIP | SET_MIP_STIP | SET_MIP_MTIP);
+    CSR_WRITE("medeleg", MEDELEG_ALL);
+    CSR_WRITE("mstatus", MSTATUS_FS_INITIAL | MSTATUS_SET_SUPERVISOR | MSTATUS_SET_MPIE);
     asm volatile ("mret");
-    return 0;
 }

@@ -57,7 +57,6 @@ u8 uart_get(void){
 
 u8 uart_get_char(void){
     u8 tmp = ring_pop(&buf, mutex);
-    kprint("hey i got this in the uart code %u\n", tmp);
     return tmp;
 }
 
