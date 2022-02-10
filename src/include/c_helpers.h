@@ -5,6 +5,8 @@
 
 int strcmp(char*, char*);
 
+int strcpy(char*, char*);
+
 void exec_cmd(char*);
 
 #endif

@@ -23,9 +23,24 @@ int strcmp(char* str1, char* str2){
     return -1;
 }
 
+int strcpy(char* str1, char* str2){
+    while(*str2 != '\0'){
+        *str1 = *str2;
+        str1++;
+        str2++;
+    }
+    *str1 = '\0';
+    return 0;
+}
+
 
 void exec_cmd(char* cmd){
     if(strcmp(cmd, "test") == 0){
         kprint("this is a test!\n");
+    }
+    if(strcmp(cmd, "gettime()") == 0){
+        u64 tm;
+        asm volatile("rdtime %0" : "=r"(tm));
+        kprint("%U\n", tm);
     }
 }
