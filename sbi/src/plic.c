@@ -2,11 +2,6 @@
 #include <uart.h>
 #include <kprint.h>
 
-
-
-
-
-
 void plic_set_priority(int interrupt_id, u8 priority)
 {
     u32 *base = (u32 *)PLIC_PRIORITY(interrupt_id);
@@ -42,6 +37,8 @@ void plic_init(){
     plic_enable(0, 10);
     plic_set_priority(10, 7);
     plic_set_threshold(0, 0);
+    plic_enable(0, 11);
+    plic_set_priority(11, 7);
 }
 
 void plic_handle_irq(u64 cause, u64 hart){

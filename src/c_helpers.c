@@ -43,4 +43,21 @@ void exec_cmd(char* cmd){
         asm volatile("rdtime %0" : "=r"(tm));
         kprint("%U\n", tm);
     }
+    if(strcmp(cmd, "gettimeofday()") == 0){
+        u64 year = 0;
+        u64 month = 0;
+        u64 day = 0;
+        volatile u32* RTC_BASE = 0x101000UL;
+        volatile u32* RTC_STATUS = ((void*)RTC_BASE) + 0x04;
+        volatile u32* RTC_ENABLE = ((void*)RTC_BASE) + 0x10;
+        u64 low = (*RTC_BASE);
+        u64 high = (*RTC_STATUS);
+
+        u64 time = (high << 32) | low;
+
+        year = 1970 + (time / 31557600000000000ULL);
+
+        kprint("TIME: %U\n", year);
+        kprint("yay\n");
+    }
 }

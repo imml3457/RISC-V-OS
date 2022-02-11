@@ -53,6 +53,7 @@ void tsh(void){
                             for(i = 0; i < cmd_iter; i++){
                                 sbi_putchar(cmd[i]);
                             }
+                            break;
                     }
                 }
                 break;

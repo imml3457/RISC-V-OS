@@ -4,7 +4,7 @@
 #include <common.h>
 #include <lock.h>
 
-#define UART_BUFFER_SIZE 10
+#define UART_BUFFER_SIZE 32
 
 struct ring_buffer{
     char ringbuf[UART_BUFFER_SIZE];

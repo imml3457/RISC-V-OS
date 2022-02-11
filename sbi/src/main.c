@@ -11,8 +11,10 @@ void main(int hart){
     while(hart != 0){
         asm volatile ("wfi");
     }
+
     clear_bss();
     uart_init();
+
 
     plic_init();
 
