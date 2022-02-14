@@ -2,6 +2,8 @@
 #include <kprint.h>
 #include <plic.h>
 #include <supcall.h>
+#include <clint.h>
+#include <hart.h>
 
 void unhandled_irq(u64 cause, u64 hartid){
     kprint("get gud I haven't handled this yed %U on hart %U\n", cause, hartid);
@@ -29,11 +31,11 @@ void (*irq_table[])(u64, u64) = {
     unhandled_irq,        //0
     unhandled_irq,
     unhandled_irq,
-    unhandled_irq,
+    h_msip,
     unhandled_irq,        //4
     unhandled_irq,
     unhandled_irq,
-    unhandled_irq,
+    clint_set_mtimecmp,
     unhandled_irq,
     unhandled_irq,        //9
     unhandled_irq,

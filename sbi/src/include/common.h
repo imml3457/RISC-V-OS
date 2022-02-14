@@ -159,4 +159,24 @@
     }                               \
 } while (0)
 
+typedef struct unix_time{
+    u64 year;
+    u64 month;
+    u64 day;
+    u64 hour;
+    u64 min;
+    u64 sec;
+}unix_time;
+
+#define NS_YEAR  31557600000000000ULL
+#define NS_LEAP  31620000000000000ULL
+#define NS_MONTH 2628000000000000ULL
+#define NS_DAY   86400000000000ULL
+
+#define CLINT_BASE_ADDRESS 0x2000000
+#define CLINT_MTIMECMP_OFFSET 0x4000
+
+#define CLINT_MTIMECMP_INFINITE  0x7FFFFFFFFFFFFFFFUL
+
+
 #endif

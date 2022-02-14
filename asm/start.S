@@ -22,3 +22,16 @@ _start:
 park:
         wfi
         j           park
+
+
+.global test
+test:
+.option push
+.option norelax
+        la          sp, _stack_end
+        la          gp, __global_pointer$
+.option pop
+        csrr        a0, sscratch
+        slli        t0, a0, 13
+        sub         sp, sp, t0
+        tail        test_hart
