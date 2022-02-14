@@ -13,6 +13,7 @@ _start:
 
         tail main
 
+.section .text
 .global park
 park:
         wfi

@@ -9,4 +9,6 @@ int strcpy(char*, char*);
 
 void exec_cmd(char*);
 
+unix_time get_unix_time(u64);
+
 #endif

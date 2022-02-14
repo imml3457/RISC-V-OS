@@ -3,7 +3,7 @@
 
 void tsh(void){
     u8 c;
-    u8 esc_f, esc_s, esc_t;
+    u8 esc_f, esc_s;
     char cmd[512];
     char prev[512];
     u32 cmd_iter = 0;
