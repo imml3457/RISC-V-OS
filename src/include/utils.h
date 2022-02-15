@@ -19,4 +19,8 @@ unix_time get_unix_time(u64);
 
 int atoi(const char*);
 
+void* memset(void*, u32, u64);
+
+void print_unix_time(void);
+
 #endif

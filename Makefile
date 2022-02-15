@@ -38,7 +38,8 @@ QEMU_DEVICES+= -device virtio-rng-pci-non-transitional,bus=rp1,id=rng
 QEMU_DEVICES+= -device virtio-blk-pci-non-transitional,drive=hdd,bus=rp2,id=blk
 QEMU_DEVICES+= -device qemu-xhci,bus=rp3,id=usbhost
 QEMU_DEVICES+= -drive if=none,format=raw,file=$(QEMU_HARD_DRIVE),id=hdd
-all: $(KERNEL)
+
+all: update $(KERNEL)
 	$(MAKE) -C sbi
 include $(wildcard $(DEP_DIR)/*.d)
 run: $(KERNEL)
@@ -54,11 +55,12 @@ $(OBJ_DIR)/%.o: $(SOURCE_DIR)/%.c Makefile
 	$(CC) -MD -MF ./deps/$*.d $(CFLAGS) -o $@ -c $<
 $(OBJ_DIR)/%.o: $(ASM_DIR)/%.S Makefile
 	$(CC) $(CFLAGS) -o $@ -c $<
-
-
-.PHONY: clean gdb run rungui sbi
+.PHONY: clean gdb run rungui sbi update
 gdb: $(KERNEL)
 	$(GDB) $< -ex "target extended-remote $(QEMU_DEBUG_PIPE)"
 clean:
 	$(MAKE) -C sbi clean
 	rm -f $(OBJ_DIR)/*.o $(DEP_DIR)/*.d $(KERNEL)
+
+update:
+	

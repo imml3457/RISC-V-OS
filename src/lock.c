@@ -1,4 +1,5 @@
 #include <lock.h>
+#include <kprint.h>
 
 
 u64 mutex_trylock(Mutex *mutex){
@@ -16,3 +17,8 @@ void mutex_unlock(Mutex *mutex){
     asm volatile("amoswap.w.rl zero, zero, (%0)" :: "r"(mutex));
 }
 
+void mutex_spinlock(Mutex *mutex){
+
+    //spin until unlocked
+    while (!mutex_trylock(mutex));
+}

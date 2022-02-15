@@ -59,12 +59,10 @@ u64 h_stop(u64 hart){
 
 void h_msip(u64 cause, u64 hart){
     (void)cause;
-    kprint("inside h_msip\n");
     mutex_spinlock(&hart_locks[hart]);
 
     clint_clear_msip(hart);
     if(sbi_hart_data[hart].status == H_STARTING){
-        kprint("if it is starting I am here\n");
         CSR_WRITE("mepc", sbi_hart_data[hart].target_addr);
         CSR_WRITE("mstatus", (sbi_hart_data[hart].mode << MSTATUS_MPP_BIT) | MSTATUS_SET_MPIE | MSTATUS_FS_INITIAL);
         CSR_WRITE("mie", SET_MIE_SSIE | SET_MIE_STIE | SET_MIE_MTIE);

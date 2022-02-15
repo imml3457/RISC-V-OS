@@ -11,6 +11,7 @@ u64 mutex_trylock(Mutex *mutex);
 void mutex_unlock(Mutex *mutex);
 u64 semaphore_trydown(Semaphore *sem);
 void semaphore_tryup(Semaphore *sem);
+void mutex_spinlock(Mutex *mutex);
 
 
 #endif

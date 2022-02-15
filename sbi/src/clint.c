@@ -3,7 +3,7 @@
 
 
 void clint_set_msip(u64 hart){
-    if (hart >= 8){
+    if (hart > 9){
         return;
     }
     volatile unsigned int* clint = (unsigned int*)CLINT_BASE_ADDRESS;
@@ -12,10 +12,9 @@ void clint_set_msip(u64 hart){
     //to 1 to enable
 }
 void clint_clear_msip(u64 hart){
-    if (hart >= 8){
+    if (hart > 9){
         return;
     }
-    kprint("clearing msip\n");
     volatile unsigned int* clint = (unsigned int*)CLINT_BASE_ADDRESS;
     clint[hart] = 0;
     //like above but disable

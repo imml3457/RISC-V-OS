@@ -1,10 +1,44 @@
-#include <utilities.h>
+#include <utils.h>
 #include <kprint.h>
 #include <common.h>
 #include <csr.h>
 
-#define IS_LEAP(x) ((x) & 0x3)
+#define IS_LEAP(x) (!((x) & 0x3))
+#define _28_days 2419200000000000
+#define _29_days 2505600000000000
+#define _30_days 2592000000000000
+#define _31_days 2678400000000000
 
+
+u64 months[] = {
+                _31_days, //jan
+                _28_days, //feb
+                _31_days, //mar
+                _30_days, //apr
+                _31_days, //may
+                _30_days, //june
+                _31_days, //july
+                _31_days, //august
+                _30_days, //sept
+                _31_days, //oct
+                _30_days, //novem
+                _31_days //d
+};
+
+char* month_name[] = {
+                "January",
+                "February",
+                "March",
+                "April",
+                "May",
+                "June",
+                "July",
+                "August",
+                "September",
+                "October",
+                "November",
+                "December"
+};
 int strcmp(char* str1, char* str2){
     //error checking the strings
     while(*str1 != '\0' && *str2 != '\0'){
@@ -66,12 +100,38 @@ int atoi(const char* str){
     return sign * result;
 }
 
+void* memset(void* dst, u32 c, u64 size){
+    void* dst_head = dst;
+    u8 tmp[] = {
+                    (u8)c,
+                    (u8)c,
+                    (u8)c,
+                    (u8)c,
+                    (u8)c,
+                    (u8)c,
+                    (u8)c,
+                    (u8)c
+    };
+
+    u64 rem = size & 0x7;
+    u32 i;
+    //fast as [inaudible] boy
+    for(i = 0; i < size - rem; i+=8){
+        *(u64*)(dst + i) = *(u64*)((void*)tmp);
+    }
+    while(rem > 0){
+        *(u8*)(dst) = (u8)c;
+        dst++;
+        rem--;
+    }
+    return dst_head;
+}
+
 u64 get_nano_time(){
     volatile u32* RTC_BASE = (void*)0x101000UL;
     volatile u32* RTC_STATUS = ((void*)RTC_BASE) + 0x04;
     u64 low = (*RTC_BASE);
     u64 high = (*RTC_STATUS);
-
     u64 time = (high << 32) | low;
     return time;
 }
@@ -79,7 +139,6 @@ u64 get_nano_time(){
 unix_time get_unix_time(u64 time){
     unix_time u_time;
     u64 year_time;
-
     u64 running_year = 0;
     //year
     while(1){
@@ -92,7 +151,52 @@ unix_time get_unix_time(u64 time){
     }
     u_time.year = 1970 + running_year;
 
+    months[1] = IS_LEAP(u_time.year)? _28_days : _29_days;
+    u32 i;
+    for(i = 0; i < 12; i++){
+        if(time < months[i]){
+            u_time.month = i;
+            break;
+        }
+        time -= months[i];
+    }
+    i = 1;
+    while(1){
+        if(time < NS_DAY){
+            u_time.day = i;
+            break;
+        }
+        i++;
+        time -= NS_DAY;
+    }
+
+    u_time.hour = time / 3600000000000;
+    time -= u_time.hour * 3600000000000;
+    u_time.min = time / 60000000000;
+    time -= u_time.min * 60000000000;
+    u_time.sec = time / 1000000000;
+    time -= u_time.sec * 1000000000;
+
     return u_time;
+}
+
+void print_unix_time(){
+    u64 time = get_nano_time();
+    unix_time u_time = get_unix_time(time);
+    //hard code eastern time
+    u_time.hour -= 5;
+    if(u_time.min < 10){
+        kprint("%U-%s-%U %U:0%U", u_time.year, month_name[u_time.month], u_time.day, u_time.hour, u_time.min, u_time.sec);
+    }
+    else{
+        kprint("%U-%s-%U %U:%U", u_time.year, month_name[u_time.month], u_time.day, u_time.hour, u_time.min, u_time.sec);
+    }
+    if(u_time.sec < 10){
+        kprint(".0%U", u_time.sec);
+    }
+    else{
+        kprint(".%U", u_time.sec);
+    }
 }
 
 ATTR_NAKED_NORET
@@ -131,17 +235,8 @@ void exec_cmd(char* cmd){
         kprint("%U\n", tm);
     }
     else if(strcmp(cmd, "gettimeofday()") == 0){
-        volatile u32* RTC_BASE = (void*)0x101000UL;
-        volatile u32* RTC_STATUS = ((void*)RTC_BASE) + 0x04;
-        u64 low = (*RTC_BASE);
-        u64 high = (*RTC_STATUS);
-
-        u64 time = (high << 32) | low;
-        unix_time u_time;
-
-        u_time = get_unix_time(time);
-
-        kprint("YEAR: %U\n", u_time.year);
+        print_unix_time();
+        kprint("\n");
     }
     else if(strcmp(cmd, "status") == 0){
         int i;
@@ -173,8 +268,11 @@ void exec_cmd(char* cmd){
         // out of bounds hart
         // and get spacing better
         u64 hart = atoi(cmd + 6);
-        start_hart(hart);
-
+        if(hart > 9){
+            kprint("hart is huge please stop %U\n", hart);
+        }
+        else{
+            start_hart(hart);
+        }
     }
-
 }

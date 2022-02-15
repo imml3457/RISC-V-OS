@@ -1,17 +1,28 @@
 #include <tinyshell.h>
 #include <kprint.h>
 
+void print_prompt(){
+    kprint("%g");
+    print_unix_time();
+    kprint("%_ %c> %_");
+}
+void print_prompt_failure(){
+    kprint("\n%g");
+    print_unix_time();
+    kprint("%_ %r> %_");
+}
+
 void tsh(void){
     u8 c;
     u8 esc_f, esc_s;
+    u8 tmp;
     char cmd[512];
     char prev[512];
     u32 cmd_iter = 0;
     cmd[0]  = 0;
     prev[0] = 0;
     u32 cmd_prev_iter = 0;
-
-    kprint("%c> %_");
+    print_prompt();
     while(1){
         while((c = sbi_getchar()) == 0xff){ WFI(); }
 
@@ -25,14 +36,15 @@ void tsh(void){
                 cmd[cmd_iter] = '\0';
                 kprint("\n");
                 exec_cmd(cmd);
-                kprint("%c> %_");
+                print_prompt();
                 cmd_iter = 0;
                 break;
 
             case 3:
                 cmd[0] = '\0';
                 cmd_iter = 0;
-                kprint("\n%r> %_");
+                print_prompt_failure();
+/*                 kprint("\n%r> %_"); */
                 break;
 
             case 127:
@@ -55,6 +67,15 @@ void tsh(void){
                             }
                             break;
                     }
+                }
+                break;
+            case 12:
+                kprint("\e[2J");
+                kprint("\e[H");
+                print_prompt();
+                int i;
+                for(i = 0; i < cmd_iter; i++){
+                    sbi_putchar(cmd[i]);
                 }
                 break;
             default:
