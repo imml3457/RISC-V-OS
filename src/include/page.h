@@ -13,4 +13,8 @@ void initialize_page(void);
 page* page_falloc(void);
 void page_free(page*);
 
+void init_cont_page(void);
+page* page_cont_falloc(u64);
+void page_cont_free(page*, u64);
+
 #endif

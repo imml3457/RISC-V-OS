@@ -2,6 +2,7 @@
 #include <kprint.h>
 #include <common.h>
 #include <csr.h>
+#include <page.h>
 
 #define IS_LEAP(x) (!((x) & 0x3))
 #define _28_days 2419200000000000
@@ -274,5 +275,14 @@ void exec_cmd(char* cmd){
         else{
             start_hart(hart);
         }
+    }
+    else if(strcmp(cmd, "allocate_page") == 0){
+        page* pg = page_falloc();
+        page* pg2 = page_falloc();
+        page* pg3 = page_falloc();
+        kprint("page addr %X: %X: %X\n", pg, pg2, pg3);
+        page_free(pg);
+        page_free(pg2);
+        page_free(pg3);
     }
 }

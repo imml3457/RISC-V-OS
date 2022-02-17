@@ -15,7 +15,6 @@ void print_prompt_failure(){
 void tsh(void){
     u8 c;
     u8 esc_f, esc_s;
-    u8 tmp;
     char cmd[512];
     char prev[512];
     u32 cmd_iter = 0;
@@ -73,7 +72,7 @@ void tsh(void){
                 kprint("\e[2J");
                 kprint("\e[H");
                 print_prompt();
-                int i;
+                u32 i;
                 for(i = 0; i < cmd_iter; i++){
                     sbi_putchar(cmd[i]);
                 }
