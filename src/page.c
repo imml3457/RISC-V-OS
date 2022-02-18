@@ -11,6 +11,8 @@ page* cont_head;
 u64 num_of_bk;
 
 void init_cont_page(void){
+    //getting some globals for the book keeping
+    //also memsetting the book keeping bytes
     total_num_pages = (sym_end(heap) - sym_start(heap)) / PAGE_SIZE;
     top_of_bk = (u8*)sym_start(heap);
     num_of_bk = total_num_pages / 4;
@@ -23,6 +25,7 @@ page* page_cont_falloc(u64 num_pages){
     u64 i;
     u64 found = 0;
     u64 offset = 0;
+    //finding if there is an x amount of pages free
     for(i = 0; i < 4 * num_of_bk; i++){
         u64 two_bit = top_of_bk[i / 4] >> GET_INDEX(i);
         if(!(two_bit & 2)){
@@ -37,9 +40,12 @@ page* page_cont_falloc(u64 num_pages){
         }
 
     }
+
     if(found != num_pages){
         goto fail;
     }
+
+    //actually setting the book keeping
     for(i = 0; i < num_pages; i++){
         u64 indx = offset + i;
         u64 set_bit;
@@ -49,16 +55,12 @@ page* page_cont_falloc(u64 num_pages){
         }
         else{
             set_bit = 0b11;
-/*            kprint("what is i in the setting loop: %U\n", i); */
             set_bit = set_bit << GET_INDEX(indx);
-/*            kprint("what is two bit %X\n", set_bit); */
         }
         top_of_bk[(indx) / 4] |= set_bit;
     }
 
     page* ret_page = (page*)((u64)cont_head + (PAGE_SIZE * offset));
-/*     kprint("location of cont_head: %X\n", cont_head); */
-/*     return ret_page; */
     return memset(ret_page, 0, (PAGE_SIZE * num_pages));
 
 fail:
@@ -70,6 +72,7 @@ void page_cont_free(page* pg){
     u64 what_page = (pg - cont_head) / PAGE_SIZE;
     u64 two_bit;
     do{
+        //freeing the bookkeeping bytes
         two_bit = top_of_bk[(what_page + i) / 4] >> GET_INDEX(what_page + i);
         kprint("what is the get index %U\n", GET_INDEX(what_page + i));
         switch(GET_INDEX(what_page + i)){
@@ -88,7 +91,6 @@ void page_cont_free(page* pg){
         }
         i++;
     }while(two_bit != 3);
-    //probably should memset the page when freeing it
 }
 
 void initialize_page(){
