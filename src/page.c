@@ -8,60 +8,86 @@ Mutex pg_lock;
 u64 total_num_pages;
 u8* top_of_bk;
 page* cont_head;
-
-//!!!!!!!!
-//need to convert bk bytes from 1 byte each to 2 bits each
+u64 num_of_bk;
 
 void init_cont_page(void){
     total_num_pages = (sym_end(heap) - sym_start(heap)) / PAGE_SIZE;
     top_of_bk = (u8*)sym_start(heap);
-    cont_head = (page*)(((sym_start(heap) + total_num_pages) + (PAGE_SIZE - 1)) & 0xfffff000);
-    //this should be memsetting 0 for book keeping bytes
-    //right now bk is bits each
-/*     kprint("top of bk %X\n", top_of_bk + 1); */
-    memset(top_of_bk, 0, total_num_pages);
+    num_of_bk = total_num_pages / 4;
+    cont_head = (page*)(((sym_start(heap) + num_of_bk) + (PAGE_SIZE - 1)) & 0xfffff000);
+    memset(top_of_bk, 0, num_of_bk);
 }
 
 
 page* page_cont_falloc(u64 num_pages){
-    u64 i, j;
+    u64 i;
     u64 found = 0;
     u64 offset = 0;
-    for(i = 0; i < total_num_pages; i++){
-        if(!((top_of_bk[i] >> 1) & 1)){
-            for(j = 1; j < num_pages; j++){
-                if((top_of_bk[i+j] >> 1) & 1){
-                    break;
-                }
-                found = 1;
-            }
-            if(found == 1){
-                offset = i;
-                break;
-            }
-        }
-    }
-    for(i = 0; i < num_pages; i++){
-        if(i != num_pages - 1){
-            top_of_bk[i + offset] = 2;
+    for(i = 0; i < 4 * num_of_bk; i++){
+        u64 two_bit = top_of_bk[i / 4] >> GET_INDEX(i);
+        if(!(two_bit & 2)){
+            found += 1;
         }
         else{
-            top_of_bk[i + offset] = 3;
+            found = 0;
         }
+        if(found == num_pages){
+            offset = i - (num_pages - 1);
+            break;
+        }
+
+    }
+    if(found != num_pages){
+        goto fail;
+    }
+    for(i = 0; i < num_pages; i++){
+        u64 indx = offset + i;
+        u64 set_bit;
+        if(i != num_pages - 1){
+            set_bit = 0b10;
+            set_bit = set_bit << GET_INDEX(indx);
+        }
+        else{
+            set_bit = 0b11;
+/*            kprint("what is i in the setting loop: %U\n", i); */
+            set_bit = set_bit << GET_INDEX(indx);
+/*            kprint("what is two bit %X\n", set_bit); */
+        }
+        top_of_bk[(indx) / 4] |= set_bit;
     }
 
-    page* ret_page = cont_head + (PAGE_SIZE * offset);
-    kprint("what page offset: %U\n", offset);
+    page* ret_page = (page*)((u64)cont_head + (PAGE_SIZE * offset));
+/*     kprint("location of cont_head: %X\n", cont_head); */
+/*     return ret_page; */
     return memset(ret_page, 0, (PAGE_SIZE * num_pages));
+
+fail:
+    return NULL;
 }
 
-void page_cont_free(page* pg, u64 num_pages){
-    u64 i;
+void page_cont_free(page* pg){
+    u64 i = 0;
     u64 what_page = (pg - cont_head) / PAGE_SIZE;
-    for(i = what_page; i < what_page + num_pages; i++){
-        top_of_bk[i] = 0;
-    }
-
+    u64 two_bit;
+    do{
+        two_bit = top_of_bk[(what_page + i) / 4] >> GET_INDEX(what_page + i);
+        kprint("what is the get index %U\n", GET_INDEX(what_page + i));
+        switch(GET_INDEX(what_page + i)){
+            case 6:
+                top_of_bk[(what_page + i) / 4] &= 0b00111111;
+                break;
+            case 4:
+                top_of_bk[(what_page + i) / 4] &= 0b11001111;
+                break;
+            case 2:
+                top_of_bk[(what_page + i) / 4] &= 0b11110011;
+                break;
+            case 0:
+                top_of_bk[(what_page + i) / 4] &= 0b11111100;
+                break;
+        }
+        i++;
+    }while(two_bit != 3);
     //probably should memset the page when freeing it
 }
 
