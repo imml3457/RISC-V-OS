@@ -12,11 +12,11 @@ typedef struct Page{
 
 
 void initialize_page(void);
-page* page_falloc(void);
-void page_free(page*);
+void* page_falloc(void);
+void page_free(void*);
 
 void init_cont_page(void);
-page* page_cont_falloc(u64);
-void page_cont_free(page*);
+void* page_cont_falloc(u64);
+void page_cont_free(void*);
 
 #endif

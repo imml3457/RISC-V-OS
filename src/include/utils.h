@@ -2,6 +2,7 @@
 #define __UTILITIES_H__
 
 #include <common.h>
+/* #include <imalloc.h> */
 
 int strcmp(char*, char*);
 
@@ -22,5 +23,7 @@ int atoi(const char*);
 void* memset(void*, u32, u64);
 
 void print_unix_time(void);
+
+/* Flist* insertionSort(Flist*); */
 
 #endif

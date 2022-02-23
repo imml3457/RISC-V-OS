@@ -22,5 +22,6 @@ extern void *_memory_end;
 #define sym_end(segment) \
     ((unsigned long)&_##segment##_end)
 
+#define sym_size(segment) ((u64)&_##segment##_end - (u64)&_##segment##_start)
 
 #endif

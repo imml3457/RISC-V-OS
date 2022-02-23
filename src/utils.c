@@ -3,6 +3,7 @@
 #include <common.h>
 #include <csr.h>
 #include <page.h>
+#include <mmu.h>
 
 #define IS_LEAP(x) (!((x) & 0x3))
 #define _28_days 2419200000000000
@@ -101,6 +102,27 @@ int atoi(const char* str){
     return sign * result;
 }
 
+/* Flist* insertionSort(Flist* head){ */
+/*     Flist* cur, *cur_it, new_start, *prev_next; */
+/*     cur = head; */
+/*     if(cur == NULL){ */
+/*         return NULL; */
+/*     } */
+/*     new_start.next = NULL; */
+/*     while(cur != NULL){ */
+/*         cur_it = &new_start; */
+/*         kprint("cur %X\n", cur); */
+/*         while(cur_it->next != NULL && cur > cur_it->next){ */
+/*             cur_it = cur_it->next; */
+/*         } */
+/*         prev_next = cur->next; */
+/*         cur->next = cur_it->next; */
+/*         cur_it->next = cur; */
+/*         cur = prev_next; */
+/*     } */
+/*     return new_start.next; */
+/* } */
+
 void* memset(void* dst, u32 c, u64 size){
     void* dst_head = dst;
     u8 tmp[] = {
@@ -131,6 +153,7 @@ void* memset(void* dst, u32 c, u64 size){
 u64 get_nano_time(){
     volatile u32* RTC_BASE = (void*)0x101000UL;
     volatile u32* RTC_STATUS = ((void*)RTC_BASE) + 0x04;
+    mmu_map(kernel_page_table, (u64)RTC_BASE, (u64)RTC_BASE, PAGE_SIZE, read);
     u64 low = (*RTC_BASE);
     u64 high = (*RTC_STATUS);
     u64 time = (high << 32) | low;

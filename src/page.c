@@ -21,7 +21,7 @@ void init_cont_page(void){
 }
 
 
-page* page_cont_falloc(u64 num_pages){
+void* page_cont_falloc(u64 num_pages){
     u64 i;
     u64 found = 0;
     u64 offset = 0;
@@ -67,14 +67,13 @@ fail:
     return NULL;
 }
 
-void page_cont_free(page* pg){
+void page_cont_free(void* pg){
     u64 i = 0;
-    u64 what_page = (pg - cont_head) / PAGE_SIZE;
+    u64 what_page = (((page*)pg) - cont_head) / PAGE_SIZE;
     u64 two_bit;
     do{
         //freeing the bookkeeping bytes
         two_bit = top_of_bk[(what_page + i) / 4] >> GET_INDEX(what_page + i);
-        kprint("what is the get index %U\n", GET_INDEX(what_page + i));
         switch(GET_INDEX(what_page + i)){
             case 6:
                 top_of_bk[(what_page + i) / 4] &= 0b00111111;
@@ -116,7 +115,7 @@ void initialize_page(){
 }
 
 //f stands for something rather
-page* page_falloc(){
+void* page_falloc(){
     //if you are out of space on heap
     if(head == NULL){
         return NULL;
@@ -131,10 +130,10 @@ page* page_falloc(){
     return memset(page_return, 0, PAGE_SIZE);
 }
 
-void page_free(page* pg){
+void page_free(void* pg){
     mutex_spinlock(&pg_lock);
     //adding the page below the head
-    pg->next = head;
+    ((page*)pg)->next = head;
     head = pg;
     mutex_unlock(&pg_lock);
 }
