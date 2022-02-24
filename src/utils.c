@@ -164,6 +164,9 @@ unix_time get_unix_time(u64 time){
     unix_time u_time;
     u64 year_time;
     u64 running_year = 0;
+
+    //hard code eastern time
+    time -= 18000000000000;
     //year
     while(1){
         year_time = IS_LEAP(1970 + running_year)? NS_LEAP : NS_YEAR;
@@ -207,8 +210,6 @@ unix_time get_unix_time(u64 time){
 void print_unix_time(){
     u64 time = get_nano_time();
     unix_time u_time = get_unix_time(time);
-    //hard code eastern time
-    u_time.hour -= 5;
     if(u_time.min < 10){
         kprint("%U-%s-%U %U:0%U", u_time.year, month_name[u_time.month], u_time.day, u_time.hour, u_time.min, u_time.sec);
     }

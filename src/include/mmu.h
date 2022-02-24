@@ -4,7 +4,7 @@
 #include <csr.h>
 
 //flush all tlb entries
-#define sfence() asm volatile("sfence.vma");
+#define sfence() asm volatile("sfence.vma zero, zero");
 //flush all tlb entries whose ASID matches a0
 #define sfence_asid(x) asm volatile("sfence.vma zero, %0" : : "r"(x));
 //flush tlb entries that match the virtual addr in a0 and asid in a1
@@ -50,6 +50,9 @@ typedef enum mmu{
 
 void mmu_map(page_table*, u64, u64, u64, u64);
 void mmu_unmap(page_table*);
+void mmu_map_single(page_table*, u64, u64, u64);
+u64  virt_to_phys(page_table*, u64);
+void mmu_init();
 
 extern page_table* kernel_page_table;
 
