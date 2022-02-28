@@ -2,6 +2,7 @@
 #include <symbols.h>
 #include <lock.h>
 #include <utils.h>
+#include <mmu.h>
 
 page* head;
 Mutex pg_lock;
@@ -61,7 +62,7 @@ void* page_cont_falloc(u64 num_pages){
     }
 
     page* ret_page = (page*)((u64)cont_head + (PAGE_SIZE * offset));
-    return memset(ret_page, 0, (PAGE_SIZE * num_pages));
+    return ret_page;
 
 fail:
     return NULL;

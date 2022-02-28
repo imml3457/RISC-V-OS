@@ -19,4 +19,6 @@ void init_cont_page(void);
 void* page_cont_falloc(u64);
 void page_cont_free(void*);
 
+extern page* cont_head;
+
 #endif

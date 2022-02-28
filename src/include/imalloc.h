@@ -5,6 +5,7 @@
 #include <common.h>
 #include <stddef.h>
 
+
 typedef struct Freelist{
     size_t size;
     struct Freelist *next;
@@ -16,5 +17,6 @@ void imfree(void*);
 void imalloc_init();
 void coalesce_free_list();
 void print_flist();
+
 
 #endif
