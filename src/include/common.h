@@ -177,6 +177,8 @@ typedef struct unix_time{
 
 #define CLINT_MTIMECMP_INFINITE  0x7FFFFFFFFFFFFFFFUL
 
+#define ECAM_BASE 0x30000000
+#define BRIDGE_BASE 0x40000000
 
 
 #endif

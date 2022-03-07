@@ -167,7 +167,8 @@ void mmu_init(){
     mmu_map(kernel_page_table, sym_start(heap), sym_start(heap), sym_size(heap), rw);
 
     mmu_map(kernel_page_table, 0x0c000000, 0x0c000000, 0x0c2fffff - 0x0c000000, rw);
-
+    mmu_map(kernel_page_table, ECAM_BASE, ECAM_BASE, BRIDGE_BASE - ECAM_BASE, rw);
+    mmu_map(kernel_page_table, BRIDGE_BASE, BRIDGE_BASE, 0x50000000 - BRIDGE_BASE, rw);
     CSR_WRITE("satp", SV39 | SET_ASID(OS_ASID) | SET_PPN(kernel_page_table));
     sfence();
 }

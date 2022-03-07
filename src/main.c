@@ -7,6 +7,7 @@
 #include <imalloc.h>
 #include <mmu.h>
 #include <symbols.h>
+#include <pci.h>
 
 
 int main(void){
@@ -17,14 +18,7 @@ int main(void){
     kernel_page_table = p_table;
     mmu_init();
     imalloc_init();
-    u64* i = imalloc(312);
-    u64* i2 = imalloc(312);
-    u64* i3 = imalloc(4000);
-    u64* i4 = imalloc(8000);
-    u64* i5 = imalloc(12000);
-    imfree(i5);
-    imfree(i4);
-    print_flist();
+    initpci();
     tsh();
     return 0;
 }

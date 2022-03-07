@@ -4,6 +4,7 @@
 #include <csr.h>
 #include <page.h>
 #include <mmu.h>
+#include <pci.h>
 
 #define IS_LEAP(x) (!((x) & 0x3))
 #define _28_days 2419200000000000
@@ -300,13 +301,25 @@ void exec_cmd(char* cmd){
             start_hart(hart);
         }
     }
-    else if(strcmp(cmd, "allocate_page") == 0){
-        page* pg = page_falloc();
-        page* pg2 = page_falloc();
-        page* pg3 = page_falloc();
-        kprint("page addr %X: %X: %X\n", pg, pg2, pg3);
-        page_free(pg);
-        page_free(pg2);
-        page_free(pg3);
+    else if(strcmp(cmd, "lspci") == 0){
+        u64 bus;
+        u64 device;
+        // There are a MAXIMUM of 256 busses
+        // although some implementations allow for fewer.
+        // Minimum # of busses is 1
+        for (bus = 0;bus < 256;bus++) {
+            for (device = 0;device < 32;device++) {
+                // EcamHeader is defined below
+                volatile struct ecamheader *ec = get_ecam(bus, device, 0, 0);
+                // Vendor ID 0xffff means "invalid"
+
+                if (ec->vendor_id == 0xffff) continue;
+                // If we get here, we have a device.
+                kprint("Device at bus %d, device %d (MMIO @ 0x%X), class: 0x%x\n",
+                        bus, device, ec, ec->class_code);
+                kprint("   Device ID    : 0x%x, Vendor ID    : 0x%x\n",
+                        ec->device_id, ec->vendor_id);
+   }
+}
     }
 }
