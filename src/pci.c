@@ -81,7 +81,7 @@ void initpci(void){
                             ec->type0.bar[i] = tmp_addr;
                         }
                         prev_bar_size += bar_size;
-                        ec->command_reg = (1 << 1);
+                        ec->command_reg |= (1 << 1);
                     }
                     else{
                         //if it is 64 bit
@@ -95,7 +95,7 @@ void initpci(void){
                                 *((u64*)&ec->type0.bar[i]) = tmp_addr;
                             }
                             prev_bar_size += bar_size;
-                            ec->command_reg = (1 << 1);
+                            ec->command_reg |= (1 << 1);
                             i++;
                         }
                     }

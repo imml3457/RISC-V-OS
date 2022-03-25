@@ -1,5 +1,5 @@
-#ifndef __P_V_D_COMMON_H__
-#define __P_V_D_COMMON_H__
+#ifndef __PCI_H__
+#define __PCI_H__
 
 #include <common.h>
 #include <virtio.h>
@@ -78,7 +78,6 @@ struct capability{
     u8 next;
 };
 
-
 volatile struct ecamheader *get_ecam(u8, u8, u8, u16);
 
 void pci_set_capes();
@@ -108,11 +107,9 @@ struct PCIdriver{
     union{
         virtio_pci_rng_driver_init drive_rng_init;
     };
-    int enabled;
-    int driver_type;
-    struct virtio_pci_common_cfg* common_cfg;
-    struct virtio_pci_notify_cap* notify_cap;
-    struct virtio_pci_isr_cap* isr_cap;
+    volatile struct virtio_pci_common_cfg* common_cfg;
+    volatile struct virtio_pci_notify_cap* notify_cap;
+    volatile struct virtio_pci_isr_cap* isr_cap;
 };
 
 struct driver_list{
