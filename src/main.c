@@ -19,6 +19,7 @@ int main(void){
     mmu_init();
     imalloc_init();
     initpci();
+    pci_set_capes();
     tsh();
     return 0;
 }

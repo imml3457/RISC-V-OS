@@ -1,5 +1,6 @@
 #include <tinyshell.h>
 #include <kprint.h>
+#include <sbi.h>
 
 void print_prompt(){
     kprint("%g");

@@ -1,5 +1,8 @@
-#ifndef __PCI_H__
-#define __PCI_H__
+#ifndef __P_V_D_COMMON_H__
+#define __P_V_D_COMMON_H__
+
+#include <common.h>
+#include <virtio.h>
 
 struct ecamheader {
     u16 vendor_id;
@@ -75,10 +78,53 @@ struct capability{
     u8 next;
 };
 
+
 volatile struct ecamheader *get_ecam(u8, u8, u8, u16);
+
+void pci_set_capes();
 
 void initpci(void);
 void initbar(void);
+
+u64 find_bar(u16, u16, u8);
+
+enum drivers{
+    RNG,
+    BLOCK,
+    GPU
+};
+
+struct PCIdriver;
+
+typedef void(*virtio_pci_rng_driver)();
+typedef void(*virtio_pci_rng_driver_init)(struct PCIdriver*, void**, int);
+
+struct PCIdriver{
+    u16 vendor;
+    u16 device;
+    union{
+        virtio_pci_rng_driver drive_rng;
+    };
+    union{
+        virtio_pci_rng_driver_init drive_rng_init;
+    };
+    int enabled;
+    int driver_type;
+    struct virtio_pci_common_cfg* common_cfg;
+    struct virtio_pci_notify_cap* notify_cap;
+    struct virtio_pci_isr_cap* isr_cap;
+};
+
+struct driver_list{
+    struct PCIdriver driver;
+    struct driver_list* next;
+};
+
+extern struct driver_list* dlist;
+
+struct PCIdriver* find_driver(u16, u16);
+
+void pci_register_driver(u16, u16, void*, void*, int);
 
 
 #endif

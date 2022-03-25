@@ -5,6 +5,7 @@
 #include <page.h>
 #include <mmu.h>
 #include <pci.h>
+#include <sbi.h>
 
 #define IS_LEAP(x) (!((x) & 0x3))
 #define _28_days 2419200000000000
@@ -102,27 +103,6 @@ int atoi(const char* str){
 
     return sign * result;
 }
-
-/* Flist* insertionSort(Flist* head){ */
-/*     Flist* cur, *cur_it, new_start, *prev_next; */
-/*     cur = head; */
-/*     if(cur == NULL){ */
-/*         return NULL; */
-/*     } */
-/*     new_start.next = NULL; */
-/*     while(cur != NULL){ */
-/*         cur_it = &new_start; */
-/*         kprint("cur %X\n", cur); */
-/*         while(cur_it->next != NULL && cur > cur_it->next){ */
-/*             cur_it = cur_it->next; */
-/*         } */
-/*         prev_next = cur->next; */
-/*         cur->next = cur_it->next; */
-/*         cur_it->next = cur; */
-/*         cur = prev_next; */
-/*     } */
-/*     return new_start.next; */
-/* } */
 
 void* memset(void* dst, u32 c, u64 size){
     void* dst_head = dst;

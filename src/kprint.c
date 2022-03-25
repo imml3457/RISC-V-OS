@@ -9,6 +9,12 @@ static void _kputs(const char *s) {
     while (*s) { _kprint_putc(*s); s += 1; }
 }
 
+static char * atos(char *p, char c) {
+    p[0] = c;
+    p[1] = 0;
+    return p;
+}
+
 static char * dtos(char *p, s32 d) {
     int neg;
 
@@ -76,6 +82,8 @@ static char * Utos(char *p, u64 d) {
 static char * xtos(char *p, u32 x) {
     const char *digits = "0123456789ABCDEF";
 
+    if (x == 0) { *p = '0'; *(p + 1) = 0; return p; }
+
     p += 3 * sizeof(u32);
     *--p = 0;
 
@@ -89,6 +97,8 @@ static char * xtos(char *p, u32 x) {
 
 static char * Xtos(char *p, u64 x) {
     const char *digits = "0123456789ABCDEF";
+
+    if (x == 0) { *p = '0'; *(p + 1) = 0; return p; }
 
     p += 3 * sizeof(u64);
     *--p = 0;
@@ -110,7 +120,7 @@ static const char * eat_pad(const char *s, int *pad) {
 
     neg = *s == '-';
 
-    if (neg) { s += 1; }
+    if (neg || *s == '0') { s += 1; }
 
     while (*s >= '0' && *s <= '9') {
         *pad = 10 * *pad + (*s - '0');
@@ -126,6 +136,7 @@ void vkprint(const char *fmt, va_list args) {
     int   last_was_perc;
     char  c;
     int   pad;
+    int   padz;
     char  buff[64];
     char *p;
     int   p_len;
@@ -141,46 +152,50 @@ void vkprint(const char *fmt, va_list args) {
         }
 
         if (last_was_perc) {
-            pad = 0;
+            pad = padz = 0;
 
-            if (c == '-' || (c >= '1' && c <= '9')) {
+            if (c == '-' || c == '0' || (c >= '1' && c <= '9')) {
+                padz = c == '0';
                 fmt = eat_pad(fmt, &pad);
                 c = *fmt;
             }
 
             switch (c) {
-                case '%': p = "%";                           break;
-                case '_': p = "\e[0m";                       break;
-                case 'k': p = "\e[30m";                      break;
-                case 'b': p = "\e[34m";                      break;
-                case 'g': p = "\e[32m";                      break;
-                case 'c': p = "\e[36m";                      break;
-                case 'r': p = "\e[31m";                      break;
-                case 'y': p = "\e[33m";                      break;
-                case 'K': p = "\e[40m";                      break;
-                case 'B': p = "\e[44m";                      break;
-                case 'G': p = "\e[42m";                      break;
-                case 'C': p = "\e[46m";                      break;
-                case 'R': p = "\e[41m";                      break;
-                case 'Y': p = "\e[43m";                      break;
-                case 'd': p = dtos(buff, va_arg(args, s32)); break;
-                case 'D': p = Dtos(buff, va_arg(args, s64)); break;
-                case 'u': p = utos(buff, va_arg(args, u32)); break;
-                case 'U': p = Utos(buff, va_arg(args, u64)); break;
-                case 'x': p = xtos(buff, va_arg(args, u32)); break;
-                case 'X': p = Xtos(buff, va_arg(args, u64)); break;
-                case 's': p = va_arg(args, char*);           break;
+                case '%': p = "%";                            break;
+                case '_': p = PR_RESET;                       break;
+                case 'k': p = PR_FG_BLACK;                    break;
+                case 'b': p = PR_FG_BLUE;                     break;
+                case 'g': p = PR_FG_GREEN;                    break;
+                case 'c': p = PR_FG_CYAN;                     break;
+                case 'r': p = PR_FG_RED;                      break;
+                case 'y': p = PR_FG_YELLOW;                   break;
+                case 'm': p = PR_FG_MAGENTA;                  break;
+                case 'K': p = PR_BG_BLACK;                    break;
+                case 'B': p = PR_BG_BLUE;                     break;
+                case 'G': p = PR_BG_GREEN;                    break;
+                case 'C': p = PR_BG_CYAN;                     break;
+                case 'R': p = PR_BG_RED;                      break;
+                case 'Y': p = PR_BG_YELLOW;                   break;
+                case 'M': p = PR_BG_MAGENTA;                  break;
+                case 'a': p = atos(buff, va_arg(args, s32));  break;
+                case 'd': p = dtos(buff, va_arg(args, s32));  break;
+                case 'D': p = Dtos(buff, va_arg(args, s64));  break;
+                case 'u': p = utos(buff, va_arg(args, u32));  break;
+                case 'U': p = Utos(buff, va_arg(args, u64));  break;
+                case 'x': p = xtos(buff, va_arg(args, u32));  break;
+                case 'X': p = Xtos(buff, va_arg(args, u64));  break;
+                case 's': p = va_arg(args, char*);            break;
 
                 default: goto noprint;
             }
 
             for (p_len = 0; p[p_len]; p_len += 1);
 
-            for (; pad - p_len > 0; pad -= 1) { _kprint_putc(' '); }
+            for (; pad - p_len > 0; pad -= 1) { _kprint_putc(padz ? '0' : ' '); }
 
             _kputs(p);
 
-            for (; pad + p_len < 0; pad += 1) { _kprint_putc(' '); }
+            for (; pad + p_len < 0; pad += 1) { _kprint_putc(padz ? '0' : ' '); }
 
 noprint:;
             last_was_perc = 0;

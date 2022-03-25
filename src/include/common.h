@@ -181,4 +181,8 @@ typedef struct unix_time{
 #define BRIDGE_BASE 0x40000000
 
 
+#define VIRTIO_VENDOR 0x1af4
+#define RNG_DEVICE 0x1044
+
+
 #endif
