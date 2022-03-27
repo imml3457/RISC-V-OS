@@ -6,7 +6,7 @@
 
 page* head;
 Mutex pg_lock;
-u64 total_num_pages;
+u64 t_num_pages;
 u8* top_of_bk;
 page* cont_head;
 u64 num_of_bk;
@@ -14,9 +14,9 @@ u64 num_of_bk;
 void init_cont_page(void){
     //getting some globals for the book keeping
     //also memsetting the book keeping bytes
-    total_num_pages = (sym_end(heap) - sym_start(heap)) / PAGE_SIZE;
+    t_num_pages = (sym_end(heap) - sym_start(heap)) / PAGE_SIZE;
     top_of_bk = (u8*)sym_start(heap);
-    num_of_bk = total_num_pages / 4;
+    num_of_bk = t_num_pages / 4;
     cont_head = (page*)(((sym_start(heap) + num_of_bk) + (PAGE_SIZE - 1)) & 0xfffff000);
     memset(top_of_bk, 0, num_of_bk);
 }

@@ -24,8 +24,6 @@ sup_trap_vector:
             csrrw         t6, sscratch, t6
             savegp        31, t5
             csrr          t0, sstatus
-            srli t0, t0, 13
-            andi t0, t0, 3
 
 .option push
 .option norelax
