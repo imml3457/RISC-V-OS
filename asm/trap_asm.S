@@ -26,12 +26,7 @@ sup_trap_vector:
             csrr          t0, sstatus
             srli t0, t0, 13
             andi t0, t0, 3
-
-.option push
-.option norelax
-            la            sp, _stack_end
-            la            gp, __global_pointer$
-.option pop
+            la sp, _stack_end
             call          sup_trap_handler
             csrr          t6, sscratch
             .set i, 1
