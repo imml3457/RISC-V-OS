@@ -117,6 +117,8 @@
 
 #define MCAUSE_IS_ASYNC(x)        (((x) >> 63) & 1)
 #define MCAUSE_NUM(x)             ((x) & 0xffUL)
+#define SCAUSE_IS_ASYNC(x)        (((x) >> 63) & 1)
+#define SCAUSE_NUM(x)             ((x) & 0xffUL)
 
 
 #define ATTR_NAKED_NORET          __attribute__((naked,noreturn))

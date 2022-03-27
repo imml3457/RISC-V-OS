@@ -50,18 +50,18 @@ void initpci(void){
             if (ec->vendor_id == 0xffff) continue;
             if(ec->header_type == 1){
                 static int pci_bus_no = 1;
-                u64 addrstart = 0x40000000 | ((u64)pci_bus_no << 20);
-                u64 addrend = addrstart + ((1 << 15) - 1);
+/*                 u64 addrstart = 0x40000000 | ((u64)pci_bus_no << 20); */
+/*                 u64 addrend = addrstart + ((1 << 20) - 1); */
                 ec->command_reg = (1<<1) | (1<<2); // bits 1 and 2
                 //handling the memory range and prefetch range
-                ec->type1.memory_base = addrstart >> 16;
-                ec->type1.memory_limit = addrend >> 16;
-                ec->type1.prefetch_memory_limit = addrend >> 16;
-                ec->type1.prefetch_memory_base = addrstart >> 16;
+                ec->type1.memory_base = 0x4000;
+                ec->type1.memory_limit = 0x4fff;
+                ec->type1.prefetch_memory_limit = 0x4fff;
+                ec->type1.prefetch_memory_base = 0x4000;
                 //setting the bus numbers
                 ec->type1.primary_bus_no = bus;
                 ec->type1.secondary_bus_no = pci_bus_no;
-/*                 ec->type1.subordinate_bus_no = pci_bus_no; */
+                ec->type1.subordinate_bus_no = pci_bus_no;
                 pci_bus_no += 1;
             }
             else if(ec->header_type == 0){

@@ -3,7 +3,7 @@ GDB=$(CROSS_COMPILE)gdb
 CC=$(CROSS_COMPILE)gcc
 CXX=$(CROSS_COMPILE)g++
 OBJCOPY=$(CROSS_COMPILE)objcopy
-CFLAGS=-g -O2 -Wall -Wextra -march=rv64gc -mabi=lp64d -ffreestanding -nostdlib -nostartfiles -Isrc/include -mcmodel=medany
+CFLAGS=-g -O0 -Wall -Wextra -march=rv64gc -mabi=lp64d -ffreestanding -nostdlib -nostartfiles -Isrc/include -mcmodel=medany
 LDFLAGS=-Tlds/sbi.lds $(CFLAGS)
 LIBS=
 ASM_DIR=asm

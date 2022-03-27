@@ -5,7 +5,7 @@
 #include <pci.h>
 
 
-void virt_rng_drive();
 void virt_rng_drive_init(struct PCIdriver*, void**, int);
+int virt_rng_drive(void*, u16);
 
 #endif

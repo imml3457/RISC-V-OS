@@ -22,8 +22,10 @@ void pci_register_driver(u16 vendor, u16 device, void* driver_fn, void* driver_i
     else{
         struct driver_list *l;
         l = imalloc(sizeof(struct driver_list));
+        l->driver.config = imalloc(sizeof(struct virt_config));
         l->driver.vendor = vendor;
         l->driver.device = device;
+        l->driver.at_idx = 0;
         switch(type){
             case RNG:
                 l->driver.drive_rng = driver_fn;
@@ -37,6 +39,3 @@ void pci_register_driver(u16 vendor, u16 device, void* driver_fn, void* driver_i
     }
 }
 
-void virt_rng_drive(){
-    kprint("in rng_driver\n");
-}

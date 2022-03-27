@@ -93,24 +93,39 @@ enum drivers{
     GPU
 };
 
+struct virt_config{
+    volatile struct virtio_pci_common_cfg* common_cfg;
+    volatile struct virtio_pci_notify_cap* notify_cap;
+    volatile struct virtio_pci_isr_cap* isr_cap;
+    volatile void* device_spec;
+    struct virtq_desc* desc;
+    struct virtq_avail* available;
+    struct virtq_used* used;
+};
+
+
+
 struct PCIdriver;
 
-typedef void(*virtio_pci_rng_driver)();
+typedef int(*virtio_pci_rng_driver)(void*, u16);
 typedef void(*virtio_pci_rng_driver_init)(struct PCIdriver*, void**, int);
 
 struct PCIdriver{
     u16 vendor;
     u16 device;
+    u16 at_idx;
+    struct virt_config* config;
     union{
         virtio_pci_rng_driver drive_rng;
     };
     union{
         virtio_pci_rng_driver_init drive_rng_init;
     };
-    volatile struct virtio_pci_common_cfg* common_cfg;
-    volatile struct virtio_pci_notify_cap* notify_cap;
-    volatile struct virtio_pci_isr_cap* isr_cap;
+
+
+
 };
+
 
 struct driver_list{
     struct PCIdriver driver;

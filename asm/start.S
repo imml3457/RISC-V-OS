@@ -8,17 +8,17 @@ _start:
 .option pop
         la     t0, main
         csrw   sepc, t0
-        la     t0, asm_trap_vector
+        la     t0, sup_trap_vector
         csrw   stvec, t0
         li     t0, 1 << 9
         csrw   sie, t0
         li     t0, (1 << 13) | (1 << 8) | (1 << 5)
         csrw   sstatus, t0
-        la     ra, park
-        csrr   a0, sscratch
+//        la     ra, park
+//        csrr   a0, sscratch
         sret
 
-.global park
+/* .global park
 park:
         wfi
         j           park
@@ -33,5 +33,5 @@ test:
 .option pop
         csrr        a0, sscratch
         slli        t0, a0, 13
-        sub         sp, sp, t0
-        tail        test_hart
+       sub         sp, sp, t0
+        tail        test_hart */

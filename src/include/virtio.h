@@ -102,6 +102,8 @@ struct virtq_desc {
 #define VIRTIO_DEV_RESET 0
 #define VIRTIO_DEV_STATUS_ACK 1
 #define VIRTIO_DEV_STATUS_DRIVER 2
+#define VIRTIO_DEV_DRIVER_OK 4
 #define VIRTIO_DEV_STATUS_OK 8
+
 
 #endif
