@@ -10,6 +10,7 @@
 #include <pci.h>
 #include <plic.h>
 #include <trap.h>
+#include <rng_driver.h>
 
 struct trapframe SUP_GPREGS[8];
 
@@ -31,7 +32,7 @@ int main(void){
     pci_set_capes();
     struct PCIdriver* driver = find_driver(VIRTIO_VENDOR, RNG_DEVICE);
     char bytes[5] = {0};
-    driver->drive_rng(bytes, sizeof(bytes));
+    virt_rng_drive(bytes, sizeof(bytes));
     WFI();
     kprint("%02x %02x %02x %02x %02x\n", bytes[0], bytes[1], bytes[2], bytes[3], bytes[4]);
     tsh();

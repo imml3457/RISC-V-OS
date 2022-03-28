@@ -34,9 +34,9 @@ void (*irq_table[])(u64) = {
     unhandled_irq,
     unhandled_irq,
     unhandled_irq,
+    plic_handle_irq,        //plic_irq
     unhandled_irq,        //9
     unhandled_irq,
-    plic_handle_irq,        //plic_irq
 };
 
 
@@ -59,12 +59,12 @@ void sup_trap_handler(void){
     //i guess you can use a switch, but that shit is ugly
 
     if (async_flag){
-/*         handle_irq(scause + 16); */
+        handle_irq(scause + 16);
     }
 
     else{
-/*         kprint("what is scause %d\n", scause); */
-/*         handle_irq(scause); */
+        kprint("what is scause %d\n", scause);
+        handle_irq(scause);
     }
 
 }

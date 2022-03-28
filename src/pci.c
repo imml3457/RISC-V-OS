@@ -138,6 +138,7 @@ void pci_set_capes(){
                 struct PCIdriver* device_driver;
                 device_driver = find_driver(ec->vendor_id, ec->device_id);
                 if(device_driver != NULL){
+                    device_driver->irq = 32 + ((bus + device) % 4);
                     //need to add switch statement for calling driver_inits
                     device_driver->drive_rng_init(device_driver, capes_l, n_capes);
                     //call the [device]_init_driver needs to be called here
@@ -147,4 +148,19 @@ void pci_set_capes(){
             }
         }
     }
+}
+
+int pci_irq_handle(u64 irq){
+    struct PCIdriver* temp;
+    struct driver_list *list;
+    for(list = dlist; list!=NULL; list = list->next){
+        temp = &list->driver;
+        if(temp->irq == irq){
+            if(temp->config->isr_cap->queue_interrupt){
+                temp->is_running = 0;
+                return 0;
+            }
+        }
+    }
+    return -1;
 }

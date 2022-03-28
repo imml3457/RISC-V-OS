@@ -114,6 +114,8 @@ struct PCIdriver{
     u16 vendor;
     u16 device;
     u16 at_idx;
+    u64 irq;
+    u64 is_running;
     struct virt_config* config;
     union{
         virtio_pci_rng_driver drive_rng;
@@ -138,5 +140,6 @@ struct PCIdriver* find_driver(u16, u16);
 
 void pci_register_driver(u16, u16, void*, void*, int);
 
+int pci_irq_handle(u64);
 
 #endif

@@ -1,5 +1,6 @@
 #include <plic.h>
 #include <kprint.h>
+#include <pci.h>
 
 void plic_set_priority(int interrupt_id, u8 priority)
 {
@@ -46,8 +47,7 @@ void plic_init(){
 
 void plic_handle_irq(u64 cause){
     (void) cause;
-    u32 irq = plic_claim(0);
-
+    u64 irq = plic_claim(0);
     switch (irq){
         case 32:
             kprint("in plic\n");
@@ -55,8 +55,9 @@ void plic_handle_irq(u64 cause){
         case 33:
             kprint("in plic\n");
             break;
-        case 34:
-            kprint("in plic\n");
+        case 34:;
+            pci_irq_handle(irq);
+            plic_complete(0, irq);
             break;
         case 35:
             kprint("in plic\n");

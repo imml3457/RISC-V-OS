@@ -60,7 +60,6 @@ int virt_rng_drive(void* buffer, u16 size){
     u32 mod;
 
     struct PCIdriver* driver = find_driver(VIRTIO_VENDOR, RNG_DEVICE);
-
     at_idx = driver->at_idx;
     mod = driver->config->common_cfg->queue_size;
 
@@ -80,8 +79,6 @@ int virt_rng_drive(void* buffer, u16 size){
     u64 w_bar = find_bar(VIRTIO_VENDOR, RNG_DEVICE, driver->config->notify_cap->cap.bar);
     w_bar &= ~0xFULL;
     w_bar += driver->config->notify_cap->cap.offset;
-    kprint("what is wbar %X\n", w_bar);
     *(u32*)(w_bar + driver->config->common_cfg->queue_notify_off * driver->config->notify_cap->notify_off_multiplier) = 0;
-
     return 1;
 }
