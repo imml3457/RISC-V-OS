@@ -30,11 +30,6 @@ int main(void){
     imalloc_init();
     initpci();
     pci_set_capes();
-    struct PCIdriver* driver = find_driver(VIRTIO_VENDOR, RNG_DEVICE);
-    char bytes[5] = {0};
-    virt_rng_drive(bytes, sizeof(bytes));
-    WFI();
-    kprint("%02x %02x %02x %02x %02x\n", bytes[0], bytes[1], bytes[2], bytes[3], bytes[4]);
     tsh();
     return 0;
 }

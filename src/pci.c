@@ -157,7 +157,6 @@ int pci_irq_handle(u64 irq){
         temp = &list->driver;
         if(temp->irq == irq){
             if(temp->config->isr_cap->queue_interrupt){
-                temp->is_running = 0;
                 return 0;
             }
         }

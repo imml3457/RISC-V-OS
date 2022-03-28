@@ -3,7 +3,7 @@
 #include <plic.h>
 
 void unhandled_irq(u64 cause){
-    kprint("get gud I haven't handled this yed %U\n", cause);
+    kprint("Unhandled IRQ cause #: %U\n", cause);
 }
 
 void (*irq_table[])(u64) = {
@@ -63,7 +63,6 @@ void sup_trap_handler(void){
     }
 
     else{
-        kprint("what is scause %d\n", scause);
         handle_irq(scause);
     }
 

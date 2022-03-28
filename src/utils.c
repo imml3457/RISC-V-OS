@@ -6,6 +6,7 @@
 #include <mmu.h>
 #include <pci.h>
 #include <sbi.h>
+#include <rng.h>
 
 #define IS_LEAP(x) (!((x) & 0x3))
 #define _28_days 2419200000000000
@@ -299,7 +300,12 @@ void exec_cmd(char* cmd){
                         bus, device, ec, ec->class_code);
                 kprint("   Device ID    : 0x%x, Vendor ID    : 0x%x\n",
                         ec->device_id, ec->vendor_id);
-   }
-}
+            }
+        }
+    }
+    else if(strcmp(cmd, "randbytes") == 0){
+        char bytes[5] = {0};
+        rng(bytes, sizeof(bytes));
+        kprint("%02x %02x %02x %02x %02x\n", bytes[0], bytes[1], bytes[2], bytes[3], bytes[4]);
     }
 }

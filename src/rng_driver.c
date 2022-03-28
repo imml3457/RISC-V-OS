@@ -80,5 +80,9 @@ int virt_rng_drive(void* buffer, u16 size){
     w_bar &= ~0xFULL;
     w_bar += driver->config->notify_cap->cap.offset;
     *(u32*)(w_bar + driver->config->common_cfg->queue_notify_off * driver->config->notify_cap->notify_off_multiplier) = 0;
+
+    while(driver->config->available->idx != driver->config->used->idx){
+        WFI();
+    }
     return 1;
 }
