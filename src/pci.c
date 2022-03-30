@@ -3,6 +3,7 @@
 #include <imalloc.h>
 #include <pci.h>
 #include <rng_driver.h>
+#include <block_driver.h>
 
 
 u64 find_bar(u16 vendor, u16 d, u8 bar){
@@ -106,6 +107,8 @@ void initpci(void){
         }
     }
     pci_register_driver(VIRTIO_VENDOR, RNG_DEVICE, virt_rng_drive, virt_rng_drive_init, RNG);
+    pci_register_driver(VIRTIO_VENDOR, BLOCK_DEVICE, virt_block_drive, virt_block_drive_init, BLOCK);
+
 }
 
 
@@ -139,10 +142,14 @@ void pci_set_capes(){
                 device_driver = find_driver(ec->vendor_id, ec->device_id);
                 if(device_driver != NULL){
                     device_driver->irq = 32 + ((bus + device) % 4);
-                    //need to add switch statement for calling driver_inits
-                    device_driver->drive_rng_init(device_driver, capes_l, n_capes);
-                    //call the [device]_init_driver needs to be called here
-                    //this will handle the virtio shit
+                    switch(device_driver->type){
+                        case RNG:
+                            device_driver->drive_rng_init(device_driver, capes_l, n_capes);
+                            break;
+                        case BLOCK:
+                            device_driver->drive_block_init(device_driver, capes_l, n_capes);
+                            break;
+                    }
                 }
                 n_capes = 0;
             }

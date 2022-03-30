@@ -186,5 +186,7 @@ typedef struct unix_time{
 #define VIRTIO_VENDOR 0x1af4
 #define RNG_DEVICE 0x1044
 
+#define BLOCK_DEVICE 0x1042
+
 
 #endif
