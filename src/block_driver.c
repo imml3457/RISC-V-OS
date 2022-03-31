@@ -1,4 +1,4 @@
-#include <rng_driver.h>
+#include <block_driver.h>
 #include <kprint.h>
 #include <mmu.h>
 #include <imalloc.h>
@@ -21,6 +21,7 @@ void virt_block_drive_init(struct PCIdriver* driver, void** capes_list, int n_ca
                 driver->config->isr_cap = (struct virtio_pci_isr_cap*) w_bar;
                 break;
             case VIRTIO_CAP_DEVICE_CFG:
+                driver->config->device_spec = (struct virtio_blk_config*) w_bar;
                 break;
             case VIRTIO_CAP_PCI_CFG:
                 break;
@@ -31,12 +32,9 @@ void virt_block_drive_init(struct PCIdriver* driver, void** capes_list, int n_ca
     driver->config->common_cfg->device_status = VIRTIO_DEV_RESET;
     driver->config->common_cfg->device_status = VIRTIO_DEV_STATUS_ACK;
     driver->config->common_cfg->device_status |= VIRTIO_DEV_STATUS_DRIVER;
-    // i need to read features
     driver->config->common_cfg->device_status |= VIRTIO_DEV_STATUS_OK;
-    //dont hard code haha
     driver->config->common_cfg->queue_select = 0;
     u16 queue_s = driver->config->common_cfg->queue_size;
-    kprint("what is the queue size for the block driver %d\n", driver->config->common_cfg->queue_size);
 
     u64 temp_virt_addr = (u64)imalloc(16 * queue_s);
     driver->config->desc = (struct virtq_desc*) temp_virt_addr;
@@ -55,13 +53,79 @@ void virt_block_drive_init(struct PCIdriver* driver, void** capes_list, int n_ca
     driver->config->common_cfg->device_status |= VIRTIO_DEV_DRIVER_OK;
 }
 
-int virt_block_drive(){
-    u64 physical_addr;
+int find_size(u64 size){
+    int rem = size % 512;
+
+    if(rem != 0){
+        return (size / 512) + 1;
+    }
+    else{
+        return size / 512;
+    }
+
+}
+
+void* virt_block_drive(u64 data_addr, u32 t, u64 size){
     u32 at_idx;
     u32 mod;
 
-    struct PCIdriver* driver = find_driver(VIRTIO_VENDOR, RNG_DEVICE);
+    struct PCIdriver* driver = find_driver(VIRTIO_VENDOR, BLOCK_DEVICE);
     at_idx = driver->at_idx;
     mod = driver->config->common_cfg->queue_size;
-    return 1;
+
+    struct desc_header* header = imalloc(sizeof(struct desc_header));
+    u64 blk_size = ((struct virtio_blk_config*)driver->config->device_spec)->blk_size;
+
+    header->type = t;
+    header->sector = data_addr / blk_size;
+
+    u8 num_of_sectors = find_size(size);
+
+    u8* data = imalloc((num_of_sectors * blk_size) * sizeof(u8));
+
+    u8* status = imalloc(sizeof(u8));
+
+    *status = 69;
+    driver->config->desc[driver->at_idx_desc].addr = virt_to_phys(kernel_page_table, (u64)header);
+    driver->config->desc[driver->at_idx_desc].len = sizeof(struct desc_header);
+    driver->config->desc[driver->at_idx_desc].flags = VIRTQ_DESC_F_NEXT;
+    driver->config->desc[driver->at_idx_desc].next = driver->at_idx_desc + 1;
+
+    driver->at_idx_desc++;
+
+    if(t == VIRTIO_BLK_T_IN){
+        driver->config->desc[driver->at_idx_desc].addr = virt_to_phys(kernel_page_table, (u64)data);
+        driver->config->desc[driver->at_idx_desc].len = sizeof((num_of_sectors * blk_size) * sizeof(u8));
+        driver->config->desc[driver->at_idx_desc].flags = VIRTQ_DESC_F_NEXT | VIRTQ_DESC_F_WRITE;
+        driver->config->desc[driver->at_idx_desc].next = driver->at_idx_desc + 1;
+    }
+
+    else if(t == VIRTIO_BLK_T_OUT){
+        driver->config->desc[driver->at_idx_desc].addr = virt_to_phys(kernel_page_table, (u64)data);
+        driver->config->desc[driver->at_idx_desc].len = sizeof((num_of_sectors * blk_size) * sizeof(u8));
+        driver->config->desc[driver->at_idx_desc].flags = VIRTQ_DESC_F_NEXT;
+        driver->config->desc[driver->at_idx_desc].next = driver->at_idx_desc + 1;
+    }
+
+    driver->at_idx_desc++;
+
+    driver->config->desc[driver->at_idx_desc].addr = virt_to_phys(kernel_page_table, (u64)status);
+    driver->config->desc[driver->at_idx_desc].len = sizeof(u8);
+    driver->config->desc[driver->at_idx_desc].flags = VIRTQ_DESC_F_WRITE;
+
+    driver->at_idx_desc++;
+
+    driver->config->available->ring[driver->config->available->idx % mod] = at_idx;
+
+    driver->config->available->idx += 1;
+
+    driver->at_idx = (driver->at_idx + 1) % mod;
+
+    kprint("number of desc %d\n", driver->at_idx_desc);
+    u64 w_bar = find_bar(VIRTIO_VENDOR, BLOCK_DEVICE, driver->config->notify_cap->cap.bar);
+    w_bar &= ~0xFULL;
+    w_bar += driver->config->notify_cap->cap.offset;
+    *(u32*)(w_bar + driver->config->common_cfg->queue_notify_off * driver->config->notify_cap->notify_off_multiplier) = 0;
+
+    return data;
 }

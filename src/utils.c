@@ -7,6 +7,7 @@
 #include <pci.h>
 #include <sbi.h>
 #include <rng.h>
+#include <block.h>
 
 #define IS_LEAP(x) (!((x) & 0x3))
 #define _28_days 2419200000000000
@@ -308,4 +309,11 @@ void exec_cmd(char* cmd){
         rng(bytes, sizeof(bytes));
         kprint("%02x %02x %02x %02x %02x\n", bytes[0], bytes[1], bytes[2], bytes[3], bytes[4]);
     }
+    else if(strcmp(cmd, "read") == 0){
+        char *bytes;
+        bytes = dsk_read(0, 15);
+        kprint("%02x %02x %02x %02x %02x\n", bytes[0], bytes[1], bytes[2], bytes[3], bytes[4]);
+    }
+
+
 }

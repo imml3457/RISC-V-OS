@@ -163,6 +163,9 @@ int pci_irq_handle(u64 irq){
     for(list = dlist; list!=NULL; list = list->next){
         temp = &list->driver;
         if(temp->irq == irq){
+            u8 *status = temp->config->desc[2].addr;
+            kprint("status: %d\n", *status);
+            kprint("what is the desc indx: %d\n", temp->at_idx_desc);
             if(temp->config->isr_cap->queue_interrupt){
                 return 0;
             }

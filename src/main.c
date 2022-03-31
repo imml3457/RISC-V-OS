@@ -11,6 +11,7 @@
 #include <plic.h>
 #include <trap.h>
 #include <rng_driver.h>
+#include <block_driver.h>
 
 struct trapframe SUP_GPREGS[8];
 

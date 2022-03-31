@@ -4,3 +4,4 @@
 *.elf
 *.d
 .yedrc
+*.sh

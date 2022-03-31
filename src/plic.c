@@ -50,17 +50,24 @@ void plic_handle_irq(u64 cause){
     u64 irq = plic_claim(0);
     switch (irq){
         case 32:
-            kprint("in plic\n");
+            kprint("made it to the plic\n");
+            pci_irq_handle(irq);
+            plic_complete(0, irq);
             break;
         case 33:
-            kprint("in plic\n");
+            kprint("made it to the plic\n");
+            pci_irq_handle(irq);
+            plic_complete(0, irq);
             break;
         case 34:;
+            kprint("made it to the plic\n");
             pci_irq_handle(irq);
             plic_complete(0, irq);
             break;
         case 35:
-            kprint("in plic\n");
+            kprint("made it to the plic\n");
+            pci_irq_handle(irq);
+            plic_complete(0, irq);
             break;
         default:
             break;
