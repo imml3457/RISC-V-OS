@@ -109,7 +109,7 @@ struct PCIdriver;
 
 typedef int(*virtio_pci_rng_driver)(void*, u16);
 typedef void(*virtio_pci_rng_driver_init)(struct PCIdriver*, void**, int);
-typedef void*(*virtio_pci_block_driver)(void*, u64, u32, u64);
+typedef int*(*virtio_pci_block_driver)(void*, u64, u32, u64);
 typedef void(*virtio_pci_block_driver_init)(struct PCIdriver*, void**, int);
 
 
@@ -120,6 +120,8 @@ struct PCIdriver{
     u64 irq;
     u16 type;
     u64 at_idx_desc;
+    u64 at_idx_used;
+    u16 idx_blk_elems;
     struct virt_config* config;
     union{
         virtio_pci_rng_driver drive_rng;
@@ -137,6 +139,14 @@ struct driver_list{
     struct PCIdriver driver;
     struct driver_list* next;
 };
+
+struct blk_elem{
+    u16 id;
+    u64 virt_addr_data;
+    u64 virt_addr_status;
+};
+
+extern struct blk_elem elems[1024];
 
 extern struct driver_list* dlist;
 

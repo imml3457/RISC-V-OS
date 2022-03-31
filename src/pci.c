@@ -5,6 +5,7 @@
 #include <rng_driver.h>
 #include <block_driver.h>
 
+struct blk_elem elems[1024];
 
 u64 find_bar(u16 vendor, u16 d, u8 bar){
     for(int bus = 0; bus < 256; bus++){
@@ -163,10 +164,20 @@ int pci_irq_handle(u64 irq){
     for(list = dlist; list!=NULL; list = list->next){
         temp = &list->driver;
         if(temp->irq == irq){
-            u8 *status = temp->config->desc[2].addr;
-            kprint("status: %d\n", *status);
-            kprint("what is the desc indx: %d\n", temp->at_idx_desc);
+
             if(temp->config->isr_cap->queue_interrupt){
+                while(temp->config->used->idx != temp->at_idx_used){
+                    u32 id = temp->config->used->ring[temp->config->used->idx].id;
+                    u32 idx_for_elems;
+                    for(int i = 0; i < temp->idx_blk_elems; i++){
+                        if(id == elems[i].id){
+                            idx_for_elems = i;
+                        }
+                    }
+                    u8 *status = (u8*)elems[idx_for_elems].virt_addr_status;
+                    kprint("status %d\n", *status);
+                    temp->at_idx_used++;
+                }
                 return 0;
             }
         }

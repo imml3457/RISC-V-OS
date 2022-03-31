@@ -3,7 +3,6 @@
 #include <mmu.h>
 #include <imalloc.h>
 
-
 void virt_block_drive_init(struct PCIdriver* driver, void** capes_list, int n_capes){
     for(int i = 0; i < n_capes; i++){
         struct virtio_pci_cap* cap = capes_list[i];
@@ -65,7 +64,7 @@ int find_size(u64 size){
 
 }
 
-void* virt_block_drive(u64 data_addr, u32 t, u64 size){
+int virt_block_drive(u64 data_addr, u32 t, u64 size){
     u32 at_idx;
     u32 mod;
 
@@ -84,6 +83,13 @@ void* virt_block_drive(u64 data_addr, u32 t, u64 size){
     u8* data = imalloc((num_of_sectors * blk_size) * sizeof(u8));
 
     u8* status = imalloc(sizeof(u8));
+
+    elems[driver->idx_blk_elems].id = driver->at_idx_desc;
+    elems[driver->idx_blk_elems].virt_addr_data = (u64)data;
+    elems[driver->idx_blk_elems].virt_addr_status = (u64)status;
+    driver->idx_blk_elems++;
+
+    u16 header_num = driver->at_idx_desc;
 
     *status = 69;
     driver->config->desc[driver->at_idx_desc].addr = virt_to_phys(kernel_page_table, (u64)header);
@@ -115,17 +121,35 @@ void* virt_block_drive(u64 data_addr, u32 t, u64 size){
 
     driver->at_idx_desc++;
 
-    driver->config->available->ring[driver->config->available->idx % mod] = at_idx;
+    driver->config->available->ring[driver->config->available->idx % mod] = header_num;
 
     driver->config->available->idx += 1;
 
     driver->at_idx = (driver->at_idx + 1) % mod;
 
-    kprint("number of desc %d\n", driver->at_idx_desc);
     u64 w_bar = find_bar(VIRTIO_VENDOR, BLOCK_DEVICE, driver->config->notify_cap->cap.bar);
     w_bar &= ~0xFULL;
     w_bar += driver->config->notify_cap->cap.offset;
     *(u32*)(w_bar + driver->config->common_cfg->queue_notify_off * driver->config->notify_cap->notify_off_multiplier) = 0;
 
-    return data;
+/*     while(driver->config->available->idx != driver->config->used->idx){ */
+/*         WFI(); */
+/*     } */
+
+    return 1;
+}
+
+
+int virt_block_drive_read(u64 addr, u64 size){
+    struct PCIdriver* driver = find_driver(VIRTIO_VENDOR, BLOCK_DEVICE);
+    int status = virt_block_drive(addr, VIRTIO_BLK_T_IN, size);
+
+    if(status != 1){
+        return -1;
+    }
+
+    while(driver->at_idx_used == driver->config->used->idx);
+
+    return 1;
+
 }

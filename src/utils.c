@@ -311,8 +311,7 @@ void exec_cmd(char* cmd){
     }
     else if(strcmp(cmd, "read") == 0){
         char *bytes;
-        bytes = dsk_read(0, 15);
-        kprint("%02x %02x %02x %02x %02x\n", bytes[0], bytes[1], bytes[2], bytes[3], bytes[4]);
+        int status = dsk_read(0, 15);
     }
 
 

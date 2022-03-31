@@ -3,6 +3,6 @@
 
 #include <common.h>
 
-void* dsk_read(u64, u64);
+int dsk_read(u64, u64);
 
 #endif

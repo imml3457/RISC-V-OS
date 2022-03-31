@@ -27,6 +27,8 @@ void pci_register_driver(u16 vendor, u16 device, void* driver_fn, void* driver_i
         l->driver.device = device;
         l->driver.at_idx = 0;
         l->driver.at_idx_desc = 0;
+        l->driver.at_idx_used = 0;
+        l->driver.idx_blk_elems = 0;
         switch(type){
             case RNG:
                 l->driver.drive_rng = driver_fn;
