@@ -311,10 +311,21 @@ void exec_cmd(char* cmd){
         kprint("%02x %02x %02x %02x %02x\n", bytes[0], bytes[1], bytes[2], bytes[3], bytes[4]);
     }
     else if(strcmp(cmd, "read") == 0){
-        u8* bytes = imalloc(3000 * sizeof(u8));
-        dsk_read(bytes, 3072004, 3000);
+        u8* bytes = imalloc(4 * sizeof(u8));
+        dsk_read(bytes, 3072004, 4);
         kprint("read data: %s\n", bytes);
-/*         kprint("\n"); */
+    }
+    else if(strcmp(cmd, "write") == 0){
+        u8* bytes = imalloc(1024 * sizeof(u8));
+        for(int i = 0; i < 1024; i+=4){
+            bytes[i] = 't';
+            bytes[i+1] = 'e';
+            bytes[i+2] = 's';
+            bytes[i+3] = 't';
+        }
+
+        dsk_write(bytes, 3072004, 1024);
+        kprint("written data!\n");
     }
 
 

@@ -67,7 +67,7 @@ int find_size(u64 size){
 
 }
 
-int virt_block_drive(u64 data_addr, u32 t, u64 size){
+int virt_block_drive(void* buffer, u64 data_addr, u32 t, u64 size){
     u32 mod;
 
     struct PCIdriver* driver = find_driver(VIRTIO_VENDOR, BLOCK_DEVICE);
@@ -81,7 +81,29 @@ int virt_block_drive(u64 data_addr, u32 t, u64 size){
 
     u8 num_of_sectors = find_size(size);
 
-    u8* data = imalloc((num_of_sectors * blk_size) * sizeof(u8));
+    u8* data;
+
+    if(t == VIRTIO_BLK_T_IN){
+        data = imalloc((num_of_sectors * blk_size) * sizeof(u8));
+    }
+    else if(t == VIRTIO_BLK_T_OUT){
+        data = imalloc((num_of_sectors * blk_size) * sizeof(u8));
+        u64 range;
+
+        //math stuff for calculating offset
+        if(size < blk_size){
+            range = size;
+        }
+        else{
+            range = data_addr % blk_size;
+        }
+        u64 i = 0;
+        while(i < size){
+            data[range + i] = ((u8*)buffer)[i];
+            i++;
+        }
+
+    }
 
     u8* status = imalloc(sizeof(u8));
     //setting the mapping for the blk device
@@ -89,7 +111,6 @@ int virt_block_drive(u64 data_addr, u32 t, u64 size){
     elems[driver->idx_blk_elems].id = driver->at_idx_desc;
     elems[driver->idx_blk_elems].virt_addr_data = (u64)data;
     elems[driver->idx_blk_elems].virt_addr_status = (u64)status;
-    elems[driver->idx_blk_elems].size = num_of_sectors * blk_size * sizeof(u8);
     driver->idx_blk_elems++;
 
     //setting the header, data, and status descriptors
@@ -142,7 +163,7 @@ int virt_block_drive(u64 data_addr, u32 t, u64 size){
 
 void virt_block_drive_read(void* buffer, u64 addr, u64 size){
     struct PCIdriver* driver = find_driver(VIRTIO_VENDOR, BLOCK_DEVICE);
-    int status = virt_block_drive(addr, VIRTIO_BLK_T_IN, size);
+    int status = virt_block_drive(NULL, addr, VIRTIO_BLK_T_IN, size);
 
     if(status != 1){
         return;
@@ -166,7 +187,7 @@ void virt_block_drive_read(void* buffer, u64 addr, u64 size){
 
     //math stuff for calculating offset
     if(size < blk_size){
-        range = addr;
+        range = size;
     }
     else{
         range = addr % blk_size;
@@ -176,4 +197,14 @@ void virt_block_drive_read(void* buffer, u64 addr, u64 size){
         ((u8*)buffer)[i] = data[range + i];
         i++;
     }
+}
+void virt_block_drive_write(void* buffer, u64 addr, u64 size){
+    struct PCIdriver* driver = find_driver(VIRTIO_VENDOR, BLOCK_DEVICE);
+    int status = virt_block_drive(buffer, addr, VIRTIO_BLK_T_OUT, size);
+    if(status != 1){
+        return;
+    }
+    //waiting for the irq to finish
+    //so the block device can write back to the used ring
+    while(driver->at_idx_used == driver->config->used->idx);
 }

@@ -4,5 +4,6 @@
 #include <common.h>
 
 void dsk_read(void*, u64, u64);
+void dsk_write(void*, u64, u64);
 
 #endif

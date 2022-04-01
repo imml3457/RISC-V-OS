@@ -6,8 +6,9 @@
 
 
 void virt_block_drive_init(struct PCIdriver*, void**, int);
-int virt_block_drive(u64, u32, u64);
+int virt_block_drive(void*, u64, u32, u64);
 void virt_block_drive_read(void*, u64, u64);
+void virt_block_drive_write(void*, u64, u64);
 
 struct desc_header{
     u32 type;

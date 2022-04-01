@@ -109,8 +109,10 @@ struct PCIdriver;
 
 typedef int(*virtio_pci_rng_driver)(void*, u16);
 typedef void(*virtio_pci_rng_driver_init)(struct PCIdriver*, void**, int);
-typedef int*(*virtio_pci_block_driver)(void*, u64, u32, u64);
+typedef int(*virtio_pci_block_driver)(void*, u64, u32, u64);
 typedef void(*virtio_pci_block_driver_init)(struct PCIdriver*, void**, int);
+typedef void(*virtio_pci_gpu_driver)();
+typedef void(*virtio_pci_gpu_driver_init)(struct PCIdriver*, void**, int);
 
 
 struct PCIdriver{
@@ -126,11 +128,13 @@ struct PCIdriver{
     union{
         virtio_pci_rng_driver drive_rng;
         virtio_pci_block_driver drive_block;
+        virtio_pci_gpu_driver drive_gpu;
 
     };
     union{
         virtio_pci_rng_driver_init drive_rng_init;
         virtio_pci_block_driver_init drive_block_init;
+        virtio_pci_gpu_driver_init drive_gpu_init;
     };
 };
 

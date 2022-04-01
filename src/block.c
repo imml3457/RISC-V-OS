@@ -4,3 +4,7 @@
 void dsk_read(void* buffer, u64 addr_block, u64 size){
     virt_block_drive_read(buffer, addr_block, size);
 }
+
+void dsk_write(void* buffer, u64 addr_block, u64 size){
+    virt_block_drive_write(buffer, addr_block, size);
+}

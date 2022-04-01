@@ -4,6 +4,7 @@
 #include <pci.h>
 #include <rng_driver.h>
 #include <block_driver.h>
+#include <gpu_driver.h>
 
 struct blk_elem elems[1024];
 
@@ -109,6 +110,7 @@ void initpci(void){
     }
     pci_register_driver(VIRTIO_VENDOR, RNG_DEVICE, virt_rng_drive, virt_rng_drive_init, RNG);
     pci_register_driver(VIRTIO_VENDOR, BLOCK_DEVICE, virt_block_drive, virt_block_drive_init, BLOCK);
+    pci_register_driver(VIRTIO_VENDOR, GPU_DEVICE, virt_gpu_drive, virt_gpu_drive_init, GPU);
 
 }
 
@@ -150,6 +152,9 @@ void pci_set_capes(){
                         case BLOCK:
                             device_driver->drive_block_init(device_driver, capes_l, n_capes);
                             break;
+                        case GPU:
+                            device_driver->drive_gpu_init(device_driver, capes_l, n_capes);
+                            break;
                     }
                 }
                 n_capes = 0;
@@ -165,21 +170,9 @@ int pci_irq_handle(u64 irq){
     for(list = dlist; list!=NULL; list = list->next){
         temp = &list->driver;
         if(temp->irq == irq){
-
             if(temp->config->isr_cap->queue_interrupt){
-                if(temp->type == BLOCK){
-                    while(temp->config->used->idx != temp->at_idx_used){
-                        u32 id = temp->config->used->ring[temp->config->used->idx].id;
-                        u32 idx_for_elems;
-                        for(int i = 0; i < temp->idx_blk_elems; i++){
-                            if(id == elems[i].id){
-                                idx_for_elems = i;
-                            }
-                        }
-                        u8 *status = (u8*)elems[idx_for_elems].virt_addr_status;
-                        kprint("status %d\n", *status);
-                        temp->at_idx_used++;
-                    }
+                while(temp->config->used->idx != temp->at_idx_used){
+                    temp->at_idx_used++;
                 }
                 return 0;
             }
