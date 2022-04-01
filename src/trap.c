@@ -3,7 +3,7 @@
 #include <plic.h>
 
 void unhandled_irq(u64 cause){
-    kprint("Unhandled IRQ cause #: %U\n", cause);
+/*     kprint("Unhandled IRQ cause #: %U\n", cause); */
 }
 
 void (*irq_table[])(u64) = {

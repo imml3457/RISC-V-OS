@@ -144,6 +144,7 @@ struct blk_elem{
     u16 id;
     u64 virt_addr_data;
     u64 virt_addr_status;
+    u64 size;
 };
 
 extern struct blk_elem elems[1024];

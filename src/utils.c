@@ -8,6 +8,7 @@
 #include <sbi.h>
 #include <rng.h>
 #include <block.h>
+#include <imalloc.h>
 
 #define IS_LEAP(x) (!((x) & 0x3))
 #define _28_days 2419200000000000
@@ -310,8 +311,10 @@ void exec_cmd(char* cmd){
         kprint("%02x %02x %02x %02x %02x\n", bytes[0], bytes[1], bytes[2], bytes[3], bytes[4]);
     }
     else if(strcmp(cmd, "read") == 0){
-        char *bytes;
-        int status = dsk_read(0, 15);
+        u8* bytes = imalloc(3000 * sizeof(u8));
+        dsk_read(bytes, 3072004, 3000);
+        kprint("read data: %s\n", bytes);
+/*         kprint("\n"); */
     }
 
 

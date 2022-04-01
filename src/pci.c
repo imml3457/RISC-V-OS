@@ -159,6 +159,7 @@ void pci_set_capes(){
 }
 
 int pci_irq_handle(u64 irq){
+    //handling irq
     struct PCIdriver* temp;
     struct driver_list *list;
     for(list = dlist; list!=NULL; list = list->next){
@@ -166,17 +167,19 @@ int pci_irq_handle(u64 irq){
         if(temp->irq == irq){
 
             if(temp->config->isr_cap->queue_interrupt){
-                while(temp->config->used->idx != temp->at_idx_used){
-                    u32 id = temp->config->used->ring[temp->config->used->idx].id;
-                    u32 idx_for_elems;
-                    for(int i = 0; i < temp->idx_blk_elems; i++){
-                        if(id == elems[i].id){
-                            idx_for_elems = i;
+                if(temp->type == BLOCK){
+                    while(temp->config->used->idx != temp->at_idx_used){
+                        u32 id = temp->config->used->ring[temp->config->used->idx].id;
+                        u32 idx_for_elems;
+                        for(int i = 0; i < temp->idx_blk_elems; i++){
+                            if(id == elems[i].id){
+                                idx_for_elems = i;
+                            }
                         }
+                        u8 *status = (u8*)elems[idx_for_elems].virt_addr_status;
+                        kprint("status %d\n", *status);
+                        temp->at_idx_used++;
                     }
-                    u8 *status = (u8*)elems[idx_for_elems].virt_addr_status;
-                    kprint("status %d\n", *status);
-                    temp->at_idx_used++;
                 }
                 return 0;
             }
