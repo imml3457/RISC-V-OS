@@ -83,8 +83,13 @@ int virt_block_drive(void* buffer, u64 data_addr, u32 t, u64 size){
 
     u8* data;
 
+    u8* status = imalloc(sizeof(u8));
     if(t == VIRTIO_BLK_T_IN){
         data = imalloc((num_of_sectors * blk_size) * sizeof(u8));
+        elems[driver->idx_blk_elems].id = driver->at_idx_desc;
+        elems[driver->idx_blk_elems].virt_addr_data = (u64)data;
+        elems[driver->idx_blk_elems].virt_addr_status = (u64)status;
+        driver->idx_blk_elems++;
     }
     else if(t == VIRTIO_BLK_T_OUT){
         data = imalloc((num_of_sectors * blk_size) * sizeof(u8));
@@ -105,13 +110,8 @@ int virt_block_drive(void* buffer, u64 data_addr, u32 t, u64 size){
 
     }
 
-    u8* status = imalloc(sizeof(u8));
     //setting the mapping for the blk device
 
-    elems[driver->idx_blk_elems].id = driver->at_idx_desc;
-    elems[driver->idx_blk_elems].virt_addr_data = (u64)data;
-    elems[driver->idx_blk_elems].virt_addr_status = (u64)status;
-    driver->idx_blk_elems++;
 
     //setting the header, data, and status descriptors
 

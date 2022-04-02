@@ -171,6 +171,11 @@ int pci_irq_handle(u64 irq){
         temp = &list->driver;
         if(temp->irq == irq){
             if(temp->config->isr_cap->queue_interrupt){
+                if(temp->type == GPU){
+                    if(((struct virtio_gpu_config*)temp->config->device_spec)->events_read != 0){
+                        ((struct virtio_gpu_config*)temp->config->device_spec)->events_clear = 1;
+                    }
+                }
                 while(temp->config->used->idx != temp->at_idx_used){
                     temp->at_idx_used++;
                 }

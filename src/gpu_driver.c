@@ -3,14 +3,7 @@
 #include <mmu.h>
 #include <imalloc.h>
 
-#define VIRTIO_GPU_EVENT_DISPLAY   1
 
-struct virtio_gpu_config {
-   u32  events_read;
-   u32  events_clear;
-   u32  num_scanouts;
-   u32  reserved;
-};
 
 void virt_gpu_drive_init(struct PCIdriver* driver, void** capes_list, int n_capes){
     for(int i = 0; i < n_capes; i++){
@@ -63,6 +56,115 @@ void virt_gpu_drive_init(struct PCIdriver* driver, void** capes_list, int n_cape
     driver->config->common_cfg->device_status |= VIRTIO_DEV_DRIVER_OK;
 
 }
-int virt_gpu_drive(){
+int virt_gpu_drive(void* packet_type, u64 packet_size, void* ret_buffer, u64 ret_buffer_size, void* response, u64 response_size, u8 if_write){
+    u32 mod;
+
+    struct PCIdriver* driver = find_driver(VIRTIO_VENDOR, GPU_DEVICE);
+    mod = driver->config->common_cfg->queue_size;
+
+    u32 header_num = driver->at_idx_desc;
+
+
+    kprint("packet buffer %X\n", (u64)packet_type);
+    driver->config->desc[driver->at_idx_desc % mod].addr = virt_to_phys(kernel_page_table, (u64)packet_type);
+    driver->config->desc[driver->at_idx_desc % mod].len = packet_size;
+    driver->config->desc[driver->at_idx_desc % mod].flags = 0;
+
+    if(ret_buffer_size != 0 || response_size != 0){
+        driver->config->desc[driver->at_idx_desc % mod].flags |= VIRTQ_DESC_F_NEXT;
+        driver->config->desc[driver->at_idx_desc % mod].next = (driver->at_idx_desc + 1) % mod;
+    }
+
+    driver->at_idx_desc++;
+
+    if(ret_buffer_size != 0){
+        kprint("ret buffer %X\n", (u64)ret_buffer);
+        driver->config->desc[driver->at_idx_desc % mod].addr = virt_to_phys(kernel_page_table, (u64)ret_buffer);
+        driver->config->desc[driver->at_idx_desc % mod].len = ret_buffer_size;
+        if(if_write == GPU_WRITE){
+            driver->config->desc[driver->at_idx_desc % mod].flags = VIRTQ_DESC_F_NEXT | VIRTQ_DESC_F_WRITE;
+        }
+        else{
+            driver->config->desc[driver->at_idx_desc % mod].flags = VIRTQ_DESC_F_NEXT;
+        }
+        driver->config->desc[driver->at_idx_desc % mod].next = (driver->at_idx_desc + 1) % mod;
+        driver->at_idx_desc++;
+    }
+    if(response_size != 0){
+        driver->config->desc[driver->at_idx_desc % mod].addr = virt_to_phys(kernel_page_table, (u64)response);
+        driver->config->desc[driver->at_idx_desc % mod].len = response_size;
+        if(if_write == GPU_WRITE){
+            driver->config->desc[driver->at_idx_desc % mod].flags = VIRTQ_DESC_F_NEXT | VIRTQ_DESC_F_WRITE;
+        }
+        else{
+            driver->config->desc[driver->at_idx_desc % mod].flags = VIRTQ_DESC_F_NEXT;
+        }
+        driver->config->desc[driver->at_idx_desc % mod].next = 0;
+        driver->at_idx_desc++;
+    }
+
+    driver->config->available->ring[driver->config->available->idx % mod] = header_num;
+
+    driver->config->available->idx += 1;
+
+    //setting notify offset
+    u64 w_bar = find_bar(VIRTIO_VENDOR, GPU_DEVICE, driver->config->notify_cap->cap.bar);
+    w_bar &= ~0xFULL;
+    w_bar += driver->config->notify_cap->cap.offset;
+    kprint("here\n");
+    *(u32*)(w_bar + driver->config->common_cfg->queue_notify_off * driver->config->notify_cap->notify_off_multiplier) = 0;
+    //polling loop
+    //this looks similar to your code
+    //I understand that this is finding the id of the desired
+    //descriptor even though there might be more descriptors on the ring
+    //this seems like a good method (and it is similar to what I did on block device)
+    u8 correct_desc = 0;
+
+    while(correct_desc == 0){
+        while(driver->at_idx_desc != driver->config->used->idx){
+            if(driver->config->used->ring[driver->at_idx_desc % mod].id == header_num){
+                correct_desc = 1;
+            }
+            driver->at_idx_used++;
+        }
+    }
     return 1;
 }
+
+int virtio_gpu_poll(void* packet_type, u64 packet_size, void* ret_buffer, u64 ret_buffer_size, void* response, u64 response_size, u8 if_write){
+    if(if_write == GPU_WRITE){
+        virt_gpu_drive(packet_type, packet_size, ret_buffer, ret_buffer_size, response, response_size, if_write);
+        return 1;
+    }
+    else{
+        virt_gpu_drive(packet_type, packet_size, ret_buffer, ret_buffer_size, response, response_size, if_write);
+        return 1;
+    }
+    return 0;
+}
+
+int start_gpu(){
+    struct control_header *header = imalloc(sizeof(struct control_header));
+    struct display_info_response* display_info = imalloc(sizeof(struct display_info_response));
+
+    int status = 0;
+
+    header->cont_type = VIRTIO_GPU_CMD_GET_DISPLAY_INFO;
+    header->flags = 0;
+    header->fence_id = 0;
+    header->context_id = 0;
+
+
+    status = virtio_gpu_poll(header, sizeof(struct control_header), display_info, sizeof(struct display_info_response), NULL, 0, GPU_READ);
+
+    if(status != 1){
+        return -1;
+    }
+    if(display_info->hdr.cont_type != VIRTIO_GPU_RESP_OK_DISPLAY_INFO){
+        return -1;
+    }
+    return 0;
+}
+
+
+

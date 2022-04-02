@@ -111,7 +111,7 @@ typedef int(*virtio_pci_rng_driver)(void*, u16);
 typedef void(*virtio_pci_rng_driver_init)(struct PCIdriver*, void**, int);
 typedef int(*virtio_pci_block_driver)(void*, u64, u32, u64);
 typedef void(*virtio_pci_block_driver_init)(struct PCIdriver*, void**, int);
-typedef void(*virtio_pci_gpu_driver)();
+typedef void(*virtio_pci_gpu_driver)(void*, u64, void*, u64, void*, u64, u8);
 typedef void(*virtio_pci_gpu_driver_init)(struct PCIdriver*, void**, int);
 
 
