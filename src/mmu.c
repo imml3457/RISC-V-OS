@@ -3,8 +3,8 @@
 #include <page.h>
 #include <symbols.h>
 
-page_table* kernel_page_table;
-Mutex mmu_lock;
+page_table* kernel_page_table = NULL;
+Mutex mmu_lock = 0;
 
 void mmu_map(page_table* p_table, u64 virt_addr, u64 phys_addr, u64 addr_range, u64 set_bits){
     page_table* p_table_top = p_table;

@@ -4,12 +4,12 @@
 #include <utils.h>
 #include <mmu.h>
 
-page* head;
-Mutex pg_lock;
-u64 t_num_pages;
-u8* top_of_bk;
-page* cont_head;
-u64 num_of_bk;
+page* head = NULL;
+Mutex pg_lock = 0;
+u64 t_num_pages = 0;
+u8* top_of_bk = NULL;
+page* cont_head = NULL;
+u64 num_of_bk = 0;
 
 void init_cont_page(void){
     //getting some globals for the book keeping

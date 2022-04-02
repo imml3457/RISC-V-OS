@@ -33,7 +33,8 @@ int main(void){
     imalloc_init();
     initpci();
     pci_set_capes();
-    start_gpu();
+    int temp = start_gpu();
+    kprint("temp: %d\n", temp);
     tsh();
     return 0;
 }

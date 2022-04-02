@@ -98,6 +98,24 @@ struct set_scanout_request {
     u32 resource_id;
 };
 
+
+struct pixel{
+    u8 r;
+    u8 g;
+    u8 b;
+    u8 a;
+};
+
+
+struct membacked_framebuffer{
+    struct pixel* pix;
+    u32 width;
+    u32 height;
+};
+
+extern struct membacked_framebuffer* frame_buffer;
+
+
 void virt_gpu_drive_init(struct PCIdriver*, void**, int);
 int virt_gpu_drive(void*, u64, void*, u64, void*, u64, u8);
 int start_gpu();
