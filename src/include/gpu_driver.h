@@ -98,6 +98,32 @@ struct set_scanout_request {
     u32 resource_id;
 };
 
+struct virtio_gpu_resource_attach_backing {
+        struct control_header hdr;
+        u32 resource_id;
+        u32 nr_entries;
+};
+
+struct virtio_gpu_mem_entry{
+    u64 addr;
+    u32 length;
+    u32 padding;
+};
+
+struct virtio_gpu_transfer_to_host_2d {
+        struct control_header hdr;
+        struct rectangle r;
+        u64 offset;
+        u32 resource_id;
+        u32 padding;
+};
+
+struct virtio_gpu_resource_flush{
+        struct control_header hdr;
+        struct rectangle r;
+        u32 resource_id;
+        u32 padding;
+};
 
 struct pixel{
     u8 r;
