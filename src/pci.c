@@ -196,10 +196,11 @@ int pci_irq_handle(u64 irq){
                 }
                 while(temp->config->used->idx != temp->at_idx_used){
                     if(temp->type == INPUT){
+                        kprint("pushing to ring\n");
                         u32 temp_size = temp->at_idx_used % temp->config->common_cfg->queue_size;
                         struct virtq_used_elem* temp_elem = temp->config->used->ring + temp_size;
                         struct virtq_desc* temp_desc = temp->config->desc + temp_elem->id;
-                        ring_push(ring_buf, (void*)pack_event_input(temp_desc->addr));
+/*                         ring_push(ring_buf, (void*)pack_event_input(temp_desc->addr)); */
                         temp->config->available->idx += 1;
                     }
                     temp->at_idx_used++;
