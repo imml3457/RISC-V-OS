@@ -90,7 +90,8 @@ u64 find_bar(u16, u16, u8);
 enum drivers{
     RNG,
     BLOCK,
-    GPU
+    GPU,
+    INPUT
 };
 
 struct virt_config{
@@ -113,6 +114,8 @@ typedef int(*virtio_pci_block_driver)(void*, u64, u32, u64);
 typedef void(*virtio_pci_block_driver_init)(struct PCIdriver*, void**, int);
 typedef void(*virtio_pci_gpu_driver)(void*, u64, void*, u64, void*, u64, u8);
 typedef void(*virtio_pci_gpu_driver_init)(struct PCIdriver*, void**, int);
+typedef void(*virtio_pci_input_driver)();
+typedef void(*virtio_pci_input_driver_init)(struct PCIdriver*, void**, int);
 
 
 struct PCIdriver{
@@ -129,12 +132,13 @@ struct PCIdriver{
         virtio_pci_rng_driver drive_rng;
         virtio_pci_block_driver drive_block;
         virtio_pci_gpu_driver drive_gpu;
-
+        virtio_pci_input_driver drive_input;
     };
     union{
         virtio_pci_rng_driver_init drive_rng_init;
         virtio_pci_block_driver_init drive_block_init;
         virtio_pci_gpu_driver_init drive_gpu_init;
+        virtio_pci_input_driver_init drive_input_init;
     };
 };
 

@@ -32,7 +32,8 @@ QEMU_OPTIONS= -serial mon:stdio -gdb unix:$(QEMU_DEBUG_PIPE),server,nowait -rtc 
 QEMU_DEVICES+= -device pcie-root-port,id=rp1,multifunction=off,chassis=0,slot=1,bus=pcie.0,addr=01.0
 QEMU_DEVICES+= -device pcie-root-port,id=rp2,multifunction=off,chassis=1,slot=2,bus=pcie.0,addr=02.0
 QEMU_DEVICES+= -device pcie-root-port,id=rp3,multifunction=off,chassis=2,slot=3,bus=pcie.0,addr=03.0
-QEMU_DEVICES+= -device virtio-tablet,bus=rp1,id=tablet
+QEMU_DEVICES+= -device virtio-tablet-pci,bus=rp1,id=tablet
+QEMU_DEVICES+= -device virtio-keyboard-pci,bus=rp1,id=keyboard
 QEMU_DEVICES+= -device virtio-gpu-pci,bus=rp2,id=gpu
 QEMU_DEVICES+= -device virtio-rng-pci-non-transitional,bus=rp1,id=rng
 QEMU_DEVICES+= -device virtio-blk-pci-non-transitional,drive=hdd,bus=rp2,id=blk

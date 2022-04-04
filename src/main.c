@@ -34,7 +34,6 @@ int main(void){
     initpci();
     pci_set_capes();
     int temp = start_gpu();
-    kprint("temp: %d\n", temp);
     tsh();
     return 0;
 }

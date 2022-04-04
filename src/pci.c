@@ -5,7 +5,9 @@
 #include <rng_driver.h>
 #include <block_driver.h>
 #include <gpu_driver.h>
+#include <input_driver.h>
 
+struct ring_buffer* ring_buf;
 struct blk_elem elems[1024];
 
 u64 find_bar(u16 vendor, u16 d, u8 bar){
@@ -111,11 +113,13 @@ void initpci(void){
     pci_register_driver(VIRTIO_VENDOR, RNG_DEVICE, virt_rng_drive, virt_rng_drive_init, RNG);
     pci_register_driver(VIRTIO_VENDOR, BLOCK_DEVICE, virt_block_drive, virt_block_drive_init, BLOCK);
     pci_register_driver(VIRTIO_VENDOR, GPU_DEVICE, virt_gpu_drive, virt_gpu_drive_init, GPU);
+    pci_register_driver(VIRTIO_VENDOR, INPUT_DEVICE, NULL, virt_input_drive_init, INPUT);
 
 }
 
 
 void pci_set_capes(){
+    int found_input = 0;
     void* capes_l[256];
     int n_capes = 0;
     for (int bus = 0;bus < 256;bus++) {
@@ -155,12 +159,26 @@ void pci_set_capes(){
                         case GPU:
                             device_driver->drive_gpu_init(device_driver, capes_l, n_capes);
                             break;
+                        case INPUT:
+                            if(found_input == 0){
+                                found_input = 1;
+                                kprint("here\n");
+                                device_driver->drive_input_init(device_driver, capes_l, n_capes);
+                            }
+                            else{
+                                break;
+                            }
+                            break;
                     }
                 }
                 n_capes = 0;
             }
         }
     }
+}
+
+static inline u64 pack_event_input(u64 ev){
+    return *((const u64*)ev);
 }
 
 int pci_irq_handle(u64 irq){
@@ -177,6 +195,13 @@ int pci_irq_handle(u64 irq){
                     }
                 }
                 while(temp->config->used->idx != temp->at_idx_used){
+                    if(temp->type == INPUT){
+                        u32 temp_size = temp->at_idx_used % temp->config->common_cfg->queue_size;
+                        struct virtq_used_elem* temp_elem = temp->config->used->ring + temp_size;
+                        struct virtq_desc* temp_desc = temp->config->desc + temp_elem->id;
+                        ring_push(ring_buf, (void*)pack_event_input(temp_desc->addr));
+                        temp->config->available->idx += 1;
+                    }
                     temp->at_idx_used++;
                 }
                 return 0;

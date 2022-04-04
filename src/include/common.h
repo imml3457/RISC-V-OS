@@ -187,6 +187,7 @@ typedef struct unix_time{
 #define RNG_DEVICE 0x1044
 #define BLOCK_DEVICE 0x1042
 #define GPU_DEVICE 0x1050
+#define INPUT_DEVICE 0x1052
 
 
 #endif

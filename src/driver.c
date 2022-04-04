@@ -36,14 +36,19 @@ void pci_register_driver(u16 vendor, u16 device, void* driver_fn, void* driver_i
                 l->driver.type = RNG;
                 break;
             case BLOCK:
-                l->driver.drive_rng = driver_fn;
-                l->driver.drive_rng_init = driver_init_fn;
+                l->driver.drive_block = driver_fn;
+                l->driver.drive_block_init = driver_init_fn;
                 l->driver.type = BLOCK;
                 break;
             case GPU:
-                l->driver.drive_rng = driver_fn;
-                l->driver.drive_rng_init = driver_init_fn;
+                l->driver.drive_gpu = driver_fn;
+                l->driver.drive_gpu_init = driver_init_fn;
                 l->driver.type = GPU;
+                break;
+            case INPUT:
+                l->driver.drive_input = driver_fn;
+                l->driver.drive_input_init = driver_init_fn;
+                l->driver.type = INPUT;
                 break;
             default:
                 break;
