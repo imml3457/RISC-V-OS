@@ -86,6 +86,7 @@ void initpci(void);
 void initbar(void);
 
 u64 find_bar(u16, u16, u8);
+u64 find_bar_multiple_devices(u16, u16, u8, u16, u16);
 
 enum drivers{
     RNG,
@@ -115,7 +116,7 @@ typedef void(*virtio_pci_block_driver_init)(struct PCIdriver*, void**, int);
 typedef void(*virtio_pci_gpu_driver)(void*, u64, void*, u64, void*, u64, u8);
 typedef void(*virtio_pci_gpu_driver_init)(struct PCIdriver*, void**, int);
 typedef void(*virtio_pci_input_driver)();
-typedef void(*virtio_pci_input_driver_init)(struct PCIdriver*, void**, int);
+typedef void(*virtio_pci_input_driver_init)(struct PCIdriver*, void**, int, u16);
 
 
 struct PCIdriver{
@@ -127,6 +128,10 @@ struct PCIdriver{
     u64 at_idx_desc;
     u64 at_idx_used;
     u16 idx_blk_elems;
+    u16 num_inputs;
+    u16 bus;
+    u16 device_num;
+    u8 gpu_display_change;
     struct virt_config* config;
     union{
         virtio_pci_rng_driver drive_rng;
@@ -144,7 +149,7 @@ struct PCIdriver{
 
 
 struct driver_list{
-    struct PCIdriver driver;
+    struct PCIdriver* driver;
     struct driver_list* next;
 };
 
@@ -161,7 +166,7 @@ extern struct driver_list* dlist;
 
 struct PCIdriver* find_driver(u16, u16);
 
-void pci_register_driver(u16, u16, void*, void*, int);
+void pci_register_driver(u16, u16, void*, void*, int, u32);
 
 int pci_irq_handle(u64);
 

@@ -1,12 +1,14 @@
 #include <trap.h>
 #include <kprint.h>
 #include <plic.h>
+#include <sbi.h>
 
-void unhandled_irq(u64 cause){
-/*     kprint("Unhandled IRQ cause #: %U\n", cause); */
+void unhandled_irq(u64 cause, u32 hartid){
+    kprint("Unhandled IRQ cause #: %U on Hart: %u\n", cause, hartid);
+    sbi_system_off();
 }
 
-void (*irq_table[])(u64) = {
+void (*irq_table[])(u64, u32) = {
     //sync
     unhandled_irq,
     unhandled_irq,
@@ -41,8 +43,8 @@ void (*irq_table[])(u64) = {
 
 
 
-void handle_irq(u64 cause){
-    irq_table[cause](cause);
+void handle_irq(u64 cause, u32 hartid){
+    irq_table[cause](cause, hartid);
 }
 
 
@@ -52,6 +54,8 @@ void sup_trap_handler(void){
     u64 scause;
     CSR_READ(scause, "scause");
 
+    u32 hart = sbi_whoami();
+
     u32 async_flag = SCAUSE_IS_ASYNC(scause);
     scause = SCAUSE_NUM(scause);
 
@@ -59,11 +63,11 @@ void sup_trap_handler(void){
     //i guess you can use a switch, but that shit is ugly
 
     if (async_flag){
-        handle_irq(scause + 16);
+        handle_irq(scause + 16, hart);
     }
 
     else{
-        handle_irq(scause);
+        handle_irq(scause, hart);
     }
 
 }

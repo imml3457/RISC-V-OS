@@ -19,7 +19,8 @@ void (*supcall_table[])(u64*, u64) = {
     supcall_hart_start,
     supcall_hart_stop,
     supcall_get_time,
-    supcall_set_timecmp
+    supcall_set_timecmp,
+    supcall_whoami
 };
 
 void supcall_uart_put(u64* s, u64 hart){
@@ -61,6 +62,11 @@ void supcall_get_time(u64* s, u64 hart){
 void supcall_set_timecmp(u64* s, u64 hart){
     (void)hart;
     clint_set_mtimecmp(s[XREG_A0], s[XREG_A1]);
+}
+
+void supcall_whoami(u64* s, u64 hart){
+    (void)hart;
+    s[XREG_A0] = hart;
 }
 
 void supcall_handle(u64 cause, u64 hart){

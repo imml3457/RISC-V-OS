@@ -6,8 +6,9 @@
 #include <block_driver.h>
 #include <gpu_driver.h>
 #include <input_driver.h>
+#include <ringbuf.h>
 
-struct ring_buffer* ring_buf;
+int num_inp_devices = 1;
 struct blk_elem elems[1024];
 
 u64 find_bar(u16 vendor, u16 d, u8 bar){
@@ -26,6 +27,20 @@ u64 find_bar(u16 vendor, u16 d, u8 bar){
             }
         }
     }
+    return 0;
+}
+u64 find_bar_multiple_devices(u16 vendor, u16 d, u8 bar, u16 bus, u16 device){
+        volatile struct ecamheader *ec = get_ecam(bus, device, 0, 0);
+        if(ec->vendor_id == vendor && ec->device_id == d){
+            //it is a u64 bar
+            if(((ec->type0.bar[bar] & 0x7) >> 1) != 0){
+                return *((u64*)&ec->type0.bar[bar]);
+            }
+            else{
+                u32 b = ec->type0.bar[bar];
+                return b;
+            }
+        }
     return 0;
 }
 
@@ -110,16 +125,16 @@ void initpci(void){
             }
         }
     }
-    pci_register_driver(VIRTIO_VENDOR, RNG_DEVICE, virt_rng_drive, virt_rng_drive_init, RNG);
-    pci_register_driver(VIRTIO_VENDOR, BLOCK_DEVICE, virt_block_drive, virt_block_drive_init, BLOCK);
-    pci_register_driver(VIRTIO_VENDOR, GPU_DEVICE, virt_gpu_drive, virt_gpu_drive_init, GPU);
-    pci_register_driver(VIRTIO_VENDOR, INPUT_DEVICE, NULL, virt_input_drive_init, INPUT);
+    pci_register_driver(VIRTIO_VENDOR, RNG_DEVICE, virt_rng_drive, virt_rng_drive_init, RNG, 0);
+    pci_register_driver(VIRTIO_VENDOR, BLOCK_DEVICE, virt_block_drive, virt_block_drive_init, BLOCK, 0);
+    pci_register_driver(VIRTIO_VENDOR, GPU_DEVICE, virt_gpu_drive, virt_gpu_drive_init, GPU, 0);
+    pci_register_driver(VIRTIO_VENDOR, INPUT_DEVICE, NULL, virt_input_drive_init, INPUT, 1);
+    pci_register_driver(VIRTIO_VENDOR, INPUT_DEVICE, NULL, virt_input_drive_init, INPUT, 2);
 
 }
 
 
 void pci_set_capes(){
-    int found_input = 0;
     void* capes_l[256];
     int n_capes = 0;
     for (int bus = 0;bus < 256;bus++) {
@@ -145,69 +160,88 @@ void pci_set_capes(){
                         cape_next = cape->next;
                     }
                 }
-                struct PCIdriver* device_driver;
-                device_driver = find_driver(ec->vendor_id, ec->device_id);
-                if(device_driver != NULL){
-                    device_driver->irq = 32 + ((bus + device) % 4);
-                    switch(device_driver->type){
-                        case RNG:
-                            device_driver->drive_rng_init(device_driver, capes_l, n_capes);
-                            break;
-                        case BLOCK:
-                            device_driver->drive_block_init(device_driver, capes_l, n_capes);
-                            break;
-                        case GPU:
-                            device_driver->drive_gpu_init(device_driver, capes_l, n_capes);
-                            break;
-                        case INPUT:
-                            if(found_input == 0){
-                                found_input = 1;
-                                kprint("here\n");
-                                device_driver->drive_input_init(device_driver, capes_l, n_capes);
+                struct PCIdriver* temp;
+                struct driver_list *list;
+                for(list = dlist; list!=NULL; list = list->next){
+                    if(list->driver->vendor == ec->vendor_id && list->driver->device == ec->device_id){
+                        if(list->driver->type == INPUT){
+                            if(list->driver->num_inputs == num_inp_devices){
+                                temp = list->driver;
                             }
-                            else{
-                                break;
-                            }
-                            break;
+                        }
+                        else{
+                            temp = list->driver;
+                        }
                     }
+                }
+                temp->irq = 32 + ((bus + device) % 4);
+                switch(temp->type){
+                    case RNG:
+                        temp->bus = bus;
+                        temp->device_num = device;
+                        temp->drive_rng_init(temp, capes_l, n_capes);
+                        break;
+                    case BLOCK:
+                        temp->bus = bus;
+                        temp->device_num = device;
+                        temp->drive_block_init(temp, capes_l, n_capes);
+                        break;
+                    case GPU:
+                        temp->bus = bus;
+                        temp->device_num = device;
+                        temp->drive_gpu_init(temp, capes_l, n_capes);
+                        break;
+                    case INPUT:
+                        temp->bus = bus;
+                        temp->device_num = device;
+                        temp->drive_input_init(temp, capes_l, n_capes, num_inp_devices);
+                        num_inp_devices++;
+                        break;
                 }
                 n_capes = 0;
             }
         }
     }
 }
-
-static inline u64 pack_event_input(u64 ev){
-    return *((const u64*)ev);
+static inline u64 pack_event_input(u64 event_addr){
+    return *((const u64*)event_addr);
 }
+
 
 int pci_irq_handle(u64 irq){
     //handling irq
     struct PCIdriver* temp;
     struct driver_list *list;
     for(list = dlist; list!=NULL; list = list->next){
-        temp = &list->driver;
+        temp = list->driver;
         if(temp->irq == irq){
             if(temp->config->isr_cap->queue_interrupt){
                 if(temp->type == GPU){
                     if(((struct virtio_gpu_config*)temp->config->device_spec)->events_read != 0){
                         ((struct virtio_gpu_config*)temp->config->device_spec)->events_clear = 1;
+                        temp->gpu_display_change = 1;
+                        break;
+
                     }
                 }
                 while(temp->config->used->idx != temp->at_idx_used){
                     if(temp->type == INPUT){
-                        kprint("pushing to ring\n");
-                        u32 temp_size = temp->at_idx_used % temp->config->common_cfg->queue_size;
-                        struct virtq_used_elem* temp_elem = temp->config->used->ring + temp_size;
-                        struct virtq_desc* temp_desc = temp->config->desc + temp_elem->id;
-/*                         ring_push(ring_buf, (void*)pack_event_input(temp_desc->addr)); */
-                        temp->config->available->idx += 1;
+                        u16 queue_s = temp->config->common_cfg->queue_size;
+
+                        u32 idx = temp->at_idx_used % queue_s;
+                        u32 id = temp->config->used->ring[idx].id;
+                        temp->at_idx_used++;
+
+                        ring_push(ring_buf, pack_event_input(temp->config->desc[id].addr));
+                        temp->config->available->idx++;
                     }
-                    temp->at_idx_used++;
+                    else{
+                        temp->at_idx_used++;
+                    }
                 }
-                return 0;
+/*                 return 0; */
             }
         }
     }
-    return -1;
+    return 0;
 }

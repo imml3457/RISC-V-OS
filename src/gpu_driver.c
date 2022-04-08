@@ -203,8 +203,6 @@ int start_gpu(){
     struct virtio_gpu_resource_attach_backing attach_2d;
     struct virtio_gpu_mem_entry mem_entry;
     struct set_scanout_request scanout_request;
-    struct virtio_gpu_transfer_to_host_2d transfer_request;
-    struct virtio_gpu_resource_flush flush;
 
     int status = 0;
 
@@ -237,7 +235,7 @@ int start_gpu(){
     if(status != 1){
         return -1;
     }
-    if(display_info.hdr.cont_type != VIRTIO_GPU_RESP_OK_DISPLAY_INFO){
+    if(header.cont_type != VIRTIO_GPU_RESP_OK_NODATA){
         return -1;
     }
 
@@ -256,7 +254,7 @@ int start_gpu(){
     if(status != 1){
         return -1;
     }
-    if(display_info.hdr.cont_type != VIRTIO_GPU_RESP_OK_DISPLAY_INFO){
+    if(header.cont_type != VIRTIO_GPU_RESP_OK_NODATA){
         return -1;
     }
 
@@ -274,7 +272,7 @@ int start_gpu(){
     if(status != 1){
         return -1;
     }
-    if(display_info.hdr.cont_type != VIRTIO_GPU_RESP_OK_DISPLAY_INFO){
+    if(header.cont_type != VIRTIO_GPU_RESP_OK_NODATA){
         return -1;
     }
 
@@ -286,10 +284,30 @@ int start_gpu(){
     fill_rect(frame_buffer->width, frame_buffer->height, frame_buffer->pix, &rect1, &p1);
     stroke_rect(frame_buffer->width, frame_buffer->height, frame_buffer->pix, &rect2, &p2, 10);
 
+    if(!redraw_framebuffer(&rect1)){
+        return -1;
+    }
+
+
+    return 0;
+}
+
+int redraw_framebuffer(const struct rectangle *rect){
+    struct PCIdriver* driver = find_driver(VIRTIO_VENDOR, GPU_DEVICE);
+
+    if(driver->gpu_display_change == 1){
+        imfree(frame_buffer->pix);
+        start_gpu();
+    }
+
+    int status = 0;
+    struct control_header header;
+    struct virtio_gpu_transfer_to_host_2d transfer_request;
+    struct virtio_gpu_resource_flush flush;
     memset(&transfer_request, 0, sizeof(struct virtio_gpu_transfer_to_host_2d));
     transfer_request.hdr.cont_type = VIRTIO_GPU_CMD_TRANSFER_TO_HOST_2D;
-    transfer_request.r.width = frame_buffer->width;
-    transfer_request.r.height = frame_buffer->height;
+    transfer_request.offset = rect->x * sizeof(struct pixel) + rect->y * frame_buffer->width * sizeof(struct pixel);
+    transfer_request.r = *rect;
     transfer_request.resource_id = 69;
 
     header.cont_type = 0;
@@ -298,15 +316,14 @@ int start_gpu(){
     if(status != 1){
         return -1;
     }
-    if(display_info.hdr.cont_type != VIRTIO_GPU_RESP_OK_DISPLAY_INFO){
+    if(header.cont_type != VIRTIO_GPU_RESP_OK_NODATA){
         return -1;
     }
 
     memset(&flush, 0, sizeof(struct virtio_gpu_resource_flush));
 
     flush.hdr.cont_type = VIRTIO_GPU_CMD_RESOURCE_FLUSH;
-    flush.r.width = frame_buffer->width;
-    flush.r.height = frame_buffer->height;
+    flush.r = *rect;
     flush.resource_id = 69;
 
     header.cont_type = 0;
@@ -315,9 +332,9 @@ int start_gpu(){
     if(status != 1){
         return -1;
     }
-    if(display_info.hdr.cont_type != VIRTIO_GPU_RESP_OK_DISPLAY_INFO){
+    if(header.cont_type != VIRTIO_GPU_RESP_OK_NODATA){
         return -1;
     }
+    return 1;
 
-    return 0;
 }

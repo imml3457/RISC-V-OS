@@ -14,6 +14,9 @@
 #include <block_driver.h>
 #include <block.h>
 #include <gpu_driver.h>
+#include <input_driver.h>
+#include <ringbuf.h>
+
 
 struct trapframe SUP_GPREGS[8];
 
@@ -33,7 +36,9 @@ int main(void){
     imalloc_init();
     initpci();
     pci_set_capes();
-    int temp = start_gpu();
+    start_gpu();
     tsh();
+
+
     return 0;
 }

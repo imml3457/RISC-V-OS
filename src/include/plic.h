@@ -38,7 +38,7 @@ void plic_disable(int hart, int interrupt_id);
 u32  plic_claim(u64 hart);
 void plic_complete(int hart, int id);
 void plic_init();
-void plic_handle_irq(u64 cause);
+void plic_handle_irq(u64 cause, u32);
 
 
 #endif

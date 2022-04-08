@@ -45,25 +45,25 @@ void plic_init(){
     plic_set_threshold(0, 0);
 }
 
-void plic_handle_irq(u64 cause){
+void plic_handle_irq(u64 cause, u32 hartid){
     (void) cause;
-    u64 irq = plic_claim(0);
+    u64 irq = plic_claim(hartid);
     switch (irq){
         case 32:
             pci_irq_handle(irq);
-            plic_complete(0, irq);
+            plic_complete(hartid, irq);
             break;
         case 33:
             pci_irq_handle(irq);
-            plic_complete(0, irq);
+            plic_complete(hartid, irq);
             break;
         case 34:;
             pci_irq_handle(irq);
-            plic_complete(0, irq);
+            plic_complete(hartid, irq);
             break;
         case 35:
             pci_irq_handle(irq);
-            plic_complete(0, irq);
+            plic_complete(hartid, irq);
             break;
         default:
             break;

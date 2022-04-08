@@ -145,6 +145,7 @@ extern struct membacked_framebuffer* frame_buffer;
 void virt_gpu_drive_init(struct PCIdriver*, void**, int);
 int virt_gpu_drive(void*, u64, void*, u64, void*, u64, u8);
 int start_gpu();
+int redraw_framebuffer(const struct rectangle *r);
 
 #define GPU_READ 0
 #define GPU_WRITE 1

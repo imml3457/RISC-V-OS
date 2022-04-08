@@ -14,8 +14,8 @@ struct trapframe{
 
 extern struct trapframe SUP_GPREGS[8];
 
-/* void unhandled_irq(u64, u64); */
+void unhandled_irq(u64, u32);
 
-extern void (*irq_table[])(u64);
+extern void (*irq_table[])(u64, u32);
 
 #endif

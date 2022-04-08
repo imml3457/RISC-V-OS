@@ -8,7 +8,9 @@
 #include <sbi.h>
 #include <rng.h>
 #include <block.h>
+#include <input_driver.h>
 #include <imalloc.h>
+#include <ringbuf.h>
 
 #define IS_LEAP(x) (!((x) & 0x3))
 #define _28_days 2419200000000000
@@ -326,6 +328,18 @@ void exec_cmd(char* cmd){
 
         dsk_write(bytes, 3072004, 1024);
         kprint("written data!\n");
+    }
+
+    else if(strcmp(cmd, "ring_pop") == 0){
+        struct virtio_input_event *evt = imalloc(sizeof(struct virtio_input_event));
+        while(ring_pop(ring_buf, (u64*)evt) != 0){
+            kprint("%c%02x/%02x/%08x\n", evt->type, evt->code, evt->value);
+        }
+    }
+
+    else if(strcmp(cmd, "whoami") == 0){
+        u32 ret = sbi_whoami();
+        kprint("I am hart: %u\n", ret);
     }
 
 

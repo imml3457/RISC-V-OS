@@ -9,6 +9,7 @@
 #define SBI_STOP_HART 5
 #define SBI_GET_TIME 6
 #define SBI_SET_TIMECMP 7
+#define SBI_WHOAMI 8
 
 #include <common.h>
 
@@ -20,6 +21,7 @@ u64 sbi_start_hart(u64 hart, void(*target)(void), u64 privilege);
 u64 sbi_stop_hart(void);
 u64 sbi_get_time(void);
 void sbi_set_timecmp(u64, u64);
+u32 sbi_whoami(void);
 
 
 #endif

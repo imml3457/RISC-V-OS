@@ -15,7 +15,7 @@ struct ring_buffer* ring_init(struct ring_buffer* buffer, u32 cap, u32 behavior)
 
 }
 
-int ring_push(struct ring_buffer* buffer, void* elem){
+int ring_push(struct ring_buffer* buffer, u64 elem){
 
     if(buffer->num_elems >= buffer->cap){
         if(buffer->behavior == RING_BUF_DISCARD){
@@ -26,7 +26,7 @@ int ring_push(struct ring_buffer* buffer, void* elem){
         }
         else{
             buffer->num_elems -= 1;
-            buffer->at = (buffer->at + 1) & buffer->cap;
+            buffer->at = (buffer->at + 1) % buffer->cap;
         }
     }
 
@@ -38,11 +38,10 @@ int ring_push(struct ring_buffer* buffer, void* elem){
     return 1;
 }
 
-int ring_pop(struct ring_buffer* buffer, void** elem){
+int ring_pop(struct ring_buffer* buffer, u64* elem){
     if(buffer->num_elems == 0){
         return 0;
     }
-
     *elem = buffer->buf[buffer->at];
     buffer->at = (buffer->at + 1) % buffer->cap;
     buffer->num_elems -= 1;

@@ -47,3 +47,8 @@ void sbi_set_timecmp(u64 hart, u64 value){
     asm volatile("mv a7, %0\nmv a0, %1\nmv a1, %2\necall" :: "r"(SBI_SET_TIMECMP), "r"(hart), "r"(value) : "a0", "a1", "a7");
 }
 
+u32 sbi_whoami(void){
+    u32 ret;
+    asm volatile("mv a7, %1\necall\nmv %0, a0" : "=r"(ret) : "r"(SBI_WHOAMI) : "a0", "a7");
+    return ret;
+}
