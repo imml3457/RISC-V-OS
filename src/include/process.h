@@ -25,7 +25,7 @@ enum process_state {
     PS_RUNNING = 1,
     PS_SLEEPING = 2,
     PS_WAITING = 3,
-    PS_UNINITAILIZED = 4
+    PS_NONE = 4
 };
 
 struct proc_frame{
