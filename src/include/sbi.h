@@ -17,7 +17,7 @@ void sbi_putchar(u8 c);
 u8 sbi_getchar(void);
 u64 sbi_hart_status(u64);
 void sbi_system_off(void);
-u64 sbi_start_hart(u64 hart, void(*target)(void), u64 privilege);
+u64 sbi_start_hart(u64 hart, u64 target, u64 privilege);
 u64 sbi_stop_hart(void);
 u64 sbi_get_time(void);
 void sbi_set_timecmp(u64, u64);

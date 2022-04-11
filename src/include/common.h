@@ -21,6 +21,19 @@
 #define MSTATUS_FS_CLEAN          (2UL << MSTATUS_FS_BIT)
 #define MSTATUS_FS_DIRTY          (3UL << MSTATUS_FS_BIT)
 
+#define SSTATUS_SPP_BIT           8
+#define SSTATUS_SET_SUPERVISOR    (1UL << SSTATUS_SPP_BIT)
+#define SSTATUS_SET_USER          (0UL << SSTATUS_SPP_BIT)
+
+#define SSTATUS_SPIE_BIT          5
+#define SSTATUS_SET_SPIE          (1UL << SSTATUS_SPIE_BIT)
+
+#define SSTATUS_FS_BIT            13
+#define SSTATUS_FS_OFF            (0UL << SSTATUS_FS_BIT)
+#define SSTATUS_FS_INITIAL        (1UL << SSTATUS_FS_BIT)
+#define SSTATUS_FS_CLEAN          (2UL << SSTATUS_FS_BIT)
+#define SSTATUS_FS_DIRTY          (3UL << SSTATUS_FS_BIT)
+
 /*         MIP/SIP register               */
 
 //initial bits

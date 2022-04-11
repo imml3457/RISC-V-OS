@@ -21,7 +21,7 @@ void sbi_system_off(){
     asm volatile ("mv a7, %0\necall" : : "r"(SBI_SYSTEM_OFF) : "a0", "a7");
 }
 
-u64 sbi_start_hart(u64 hart, void(*target)(void), u64 privilege){
+u64 sbi_start_hart(u64 hart, u64 target, u64 privilege){
     int stat;
     asm volatile ("mv a7, %1\nmv a0, %2\nmv a1, %3\nmv a2, %4\necall\nmv %0, a0\n" :
                   "=r"(stat) :

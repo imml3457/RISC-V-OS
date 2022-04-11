@@ -22,7 +22,11 @@ int atoi(const char*);
 
 void* memset(void*, u32, u64);
 
+void* memcpy(void*, void*, u64);
+
 void print_unix_time(void);
+
+void hexdump(const u8 *bytes, u32 n_bytes);
 
 /* Flist* insertionSort(Flist*); */
 

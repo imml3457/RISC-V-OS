@@ -79,8 +79,8 @@ int virt_block_drive(void* buffer, u64 data_addr, u32 t, u64 size){
     header->type = t;
     header->sector = data_addr / blk_size;
 
-    u8 num_of_sectors = find_size(size);
 
+    u8 num_of_sectors = find_size(size);
     u8* data;
 
     u8* status = imalloc(sizeof(u8));
@@ -186,8 +186,11 @@ void virt_block_drive_read(void* buffer, u64 addr, u64 size){
     u64 range;
 
     //math stuff for calculating offset
-    if(size < blk_size){
-        range = size;
+    if(size < blk_size && addr < blk_size){
+        range = addr;
+    }
+    else if(size < blk_size && addr > blk_size){
+        range = addr % blk_size;
     }
     else{
         range = addr % blk_size;

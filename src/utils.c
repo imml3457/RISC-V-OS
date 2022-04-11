@@ -11,6 +11,7 @@
 #include <input_driver.h>
 #include <imalloc.h>
 #include <ringbuf.h>
+#include <elf.h>
 
 #define IS_LEAP(x) (!((x) & 0x3))
 #define _28_days 2419200000000000
@@ -135,7 +136,109 @@ void* memset(void* dst, u32 c, u64 size){
     }
     return dst_head;
 }
+void* memcpy(void* dst, void* src, u64 size){
+    u64 rem = size & 0x7;
+    u32 i;
+    //fast as [inaudible] boy
+    for(i = 0; i < size - rem; i+=8){
+        *(u64*)(dst + i) = *(u64*)(src + i);
+    }
+    while(rem > 0){
+        *(u8*)(dst) = *(u8*)(src);
+        dst++;
+        src++;
+        rem--;
+    }
+    return dst;
+}
 
+static inline s32 is_space(s32 c) {
+    unsigned char d = c - 9;
+    return (0x80001FU >> (d & 31)) & (1U >> (d >> 5));
+}
+
+static inline s32 is_digit(s32 c) {
+    return (u32)(('0' - 1 - c) & (c - ('9' + 1))) >> (sizeof(c) * 8 - 1);
+}
+
+static inline s32 is_alpha(s32 c) {
+    return (u32)(('a' - 1 - (c | 32)) & ((c | 32) - ('z' + 1))) >> (sizeof(c) * 8 - 1);
+}
+
+static inline s32 is_alnum(s32 c) {
+    return is_alpha(c) || is_digit(c);
+}
+
+static inline s32 is_print(s32 c) {
+    return (((u32)c) - 0x20) < 0x5f;
+}
+
+static inline u64 bswap64(u64 val) {
+  return
+      ((val & 0xFF00000000000000ULL) >> 56ULL) |
+      ((val & 0x00FF000000000000ULL) >> 40ULL) |
+      ((val & 0x0000FF0000000000ULL) >> 24ULL) |
+      ((val & 0x000000FF00000000ULL) >>  8ULL) |
+      ((val & 0x00000000FF000000ULL) <<  8ULL) |
+      ((val & 0x0000000000FF0000ULL) << 24ULL) |
+      ((val & 0x000000000000FF00ULL) << 40ULL) |
+      ((val & 0x00000000000000FFULL) << 56ULL);
+}
+void hexdump(const u8 *bytes, u32 n_bytes) {
+    u32  i;
+    u32  j;
+    char c;
+    char s[17];
+
+    i = 0;
+
+    while (n_bytes >= 16) {
+        for (j = 0; j < 16; j += 1) {
+            c = bytes[i + j];
+            if (is_print(c) && (c == ' ' || !is_space(c))) {
+                s[j] = c;
+            } else {
+                s[j] = '.';
+            }
+        }
+        s[16] = 0;
+
+        kprint("%b%016X%_",   bswap64(*(u64*)(void*)(bytes + i)));
+        i       += 8;
+        n_bytes -= 8;
+        kprint("%b%016X%_    ", bswap64(*(u64*)(void*)(bytes + i)));
+        i       += 8;
+        n_bytes -= 8;
+
+        kprint("%g%-16s%_\n", s);
+
+    }
+
+    if (n_bytes > 0) {
+        for (j = 0; j < n_bytes; j += 1) {
+            c = bytes[i + j];
+            if (is_print(c) && !is_space(c)) {
+                s[j] = c;
+            } else {
+                s[j] = '.';
+            }
+        }
+        s[j] = 0;
+
+        while (n_bytes > 0) {
+            kprint("%b%02x%_", bytes[i]);
+            i       += 1;
+            n_bytes -= 1;
+        }
+
+        while (i & 15) {
+            kprint("  ");
+            i += 1;
+        }
+
+        kprint("    %g%-16s%_\n", s);
+    }
+}
 u64 get_nano_time(){
     volatile u32* RTC_BASE = (void*)0x101000UL;
     volatile u32* RTC_STATUS = ((void*)RTC_BASE) + 0x04;
@@ -221,18 +324,6 @@ void test_hart(void){
 
 }
 
-void start_hart(u64 hart){
-    u64 status = sbi_hart_status(hart);
-    if(status == 0){
-        kprint("Hart %U does not exist\n", hart);
-    }
-    else if(status != 1){
-        kprint("Hart %U is not stopped\n",hart);
-    }
-    else{
-        sbi_start_hart(hart, test_hart, 1);
-    }
-}
 
 void exec_cmd(char* cmd){
 
@@ -274,18 +365,6 @@ void exec_cmd(char* cmd){
     else if(strcmp(cmd, "systemoff") == 0){
         sbi_system_off();
     }
-    else if(strncmp(cmd, "start", 5) == 0){
-        // I should error check
-        // out of bounds hart
-        // and get spacing better
-        u64 hart = atoi(cmd + 6);
-        if(hart > 9){
-            kprint("hart is huge please stop %U\n", hart);
-        }
-        else{
-            start_hart(hart);
-        }
-    }
     else if(strcmp(cmd, "lspci") == 0){
         u64 bus;
         u64 device;
@@ -313,9 +392,10 @@ void exec_cmd(char* cmd){
         kprint("%02x %02x %02x %02x %02x\n", bytes[0], bytes[1], bytes[2], bytes[3], bytes[4]);
     }
     else if(strcmp(cmd, "read") == 0){
-        u8* bytes = imalloc(4 * sizeof(u8));
-        dsk_read(bytes, 3072004, 4);
-        kprint("read data: %s\n", bytes);
+        u8* bytes = imalloc(4094);
+        dsk_read(bytes, 4146, 4094);
+        hexdump(bytes, 4094);
+/*         kprint("read data: %s\n", bytes); */
     }
     else if(strcmp(cmd, "write") == 0){
         u8* bytes = imalloc(1024 * sizeof(u8));
@@ -341,6 +421,4 @@ void exec_cmd(char* cmd){
         u32 ret = sbi_whoami();
         kprint("I am hart: %u\n", ret);
     }
-
-
 }

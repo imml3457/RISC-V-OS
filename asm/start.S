@@ -18,12 +18,23 @@ _start:
 //        csrr   a0, sscratch
         sret
 
-/* .global park
+
+.section .text
+.global park
+.align 4
 park:
         wfi
         j           park
+park_end:
 
 
+.section .rodata
+.global idleproc
+.global idleprocsize
+
+idleproc: .dword park
+idleprocsize: .dword park_end - park
+/*
 .global test
 test:
 .option push
