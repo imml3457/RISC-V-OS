@@ -31,7 +31,7 @@ enum process_state {
 struct proc_frame{
     u64 gpregs[32];
     //not doing floating point yet
-/*     u64 fpregs[32]; */
+    u64 fpregs[32];
     u64 sepc;
     u64 sstatus;
     u64 sie;

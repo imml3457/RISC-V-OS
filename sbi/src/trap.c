@@ -6,7 +6,7 @@
 #include <hart.h>
 
 void unhandled_irq(u64 cause, u64 hartid){
-    kprint("get gud I haven't handled this yed %U on hart %U\n", cause, hartid);
+/*     kprint("get gud I haven't handled this yed %U on hart %U\n", cause, hartid); */
 }
 
 void (*irq_table[])(u64, u64) = {

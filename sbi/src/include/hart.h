@@ -20,8 +20,9 @@ enum hartpriv{
 
 struct hart_data{
     enum hart_status status;
-    enum hartpriv mode;
+    u64 scratch;
     u64 target_addr;
+    enum hartpriv mode;
 };
 
 extern struct hart_data sbi_hart_data[8];

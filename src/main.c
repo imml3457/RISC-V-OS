@@ -52,19 +52,20 @@ int main(void){
 
     //elf spawning and handling
     struct process* p = spawn_new_process_user();
-    u8* bytes = imalloc(sizeof(Elf64_Ehdr));
-    dsk_read(bytes, 0, sizeof(Elf64_Ehdr));
-    Elf64_Ehdr* tmp_header = (Elf64_Ehdr*)bytes;
+/*     u8* bytes = imalloc(sizeof(Elf64_Ehdr)); */
+/*     dsk_read(bytes, 0, sizeof(Elf64_Ehdr)); */
+/*     Elf64_Ehdr* tmp_header = (Elf64_Ehdr*)bytes; */
 
-    u64 program_header_offset = tmp_header->e_phoff;
+/*     u64 program_header_offset = tmp_header->e_phoff; */
 
-    u8* ph_bytes = imalloc(sizeof(Elf64_Phdr) * tmp_header->e_phnum);
-    dsk_read(ph_bytes, program_header_offset, sizeof(Elf64_Phdr) * tmp_header->e_phnum);
+/*     u8* ph_bytes = imalloc(sizeof(Elf64_Phdr) * tmp_header->e_phnum); */
+/*     dsk_read(ph_bytes, program_header_offset, sizeof(Elf64_Phdr) * tmp_header->e_phnum); */
 
-    int status = load_elf_file_from_block(p, bytes, ph_bytes);
-    kprint("result of status %d\n", status);
-    imfree(ph_bytes);
-    imfree(bytes);
+/*     int status = load_elf_file_from_block(p); */
+/*     status = spawn_process_on_hart(p, 5); */
+/*     kprint("result of status %d\n", status); */
+/*     imfree(ph_bytes); */
+/*     imfree(bytes); */
     //testing idle processes
     struct process* idle = spawn_new_process_os();
 
@@ -85,7 +86,6 @@ int main(void){
     sfence_asid(idle->pid);
 
     int status = spawn_process_on_hart(idle, 1);
-    status = spawn_process_on_hart(p, 5);
 /*     WFI(); */
 
     tsh();

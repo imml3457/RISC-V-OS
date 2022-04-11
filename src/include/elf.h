@@ -3932,7 +3932,7 @@ enum
 #define R_NDS32_TLS_DESC	119
 
 
-int load_elf_file_from_block(struct process*, u8*, u8*);
+int load_elf_file_from_block(struct process*);
 
 
 #endif	/* elf.h */

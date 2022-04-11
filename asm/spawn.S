@@ -115,4 +115,3 @@ spawn_trap_start: .dword _spawn_trap
 spawn_trap_end: .dword _spawn_trap_end
 spawn_trap_size: .dword _spawn_trap_end - _spawn_trap
 
-

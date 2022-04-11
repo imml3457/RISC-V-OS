@@ -19,12 +19,15 @@ void main(int hart){
         mutex_spinlock(&hart0_lock);
         mutex_unlock(&hart0_lock);
         pmp_init();
-        sbi_hart_data[hart].status = H_STOPPED;
-        sbi_hart_data[hart].mode = H_MACHINE;
-        sbi_hart_data[hart].target_addr = 0;
 
-        CSR_WRITE("mscratch", &SBI_GPREGS[hart].gpregs[0]);
-        CSR_WRITE("sscratch", hart);
+        if(hart < 8){
+            sbi_hart_data[hart].status = H_STOPPED;
+            sbi_hart_data[hart].mode = H_MACHINE;
+            sbi_hart_data[hart].target_addr = 0;
+
+            CSR_WRITE("mscratch", &SBI_GPREGS[hart].gpregs[0]);
+            CSR_WRITE("sscratch", hart);
+        }
         CSR_WRITE("mepc", park);
         CSR_WRITE("mtvec", sbi_trap_vector);
         CSR_WRITE("mie", SET_MIE_MSIE);
