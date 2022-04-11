@@ -49,6 +49,8 @@ int main(void){
         process_stacks[i] = (u64)page_cont_falloc(1);
     }
 
+
+    //elf spawning and handling
     struct process* p = spawn_new_process_user();
     u8* bytes = imalloc(sizeof(Elf64_Ehdr));
     dsk_read(bytes, 0, sizeof(Elf64_Ehdr));
@@ -63,7 +65,7 @@ int main(void){
     kprint("result of status %d\n", status);
     imfree(ph_bytes);
     imfree(bytes);
-
+    //testing idle processes
     struct process* idle = spawn_new_process_os();
 
     idle->cntl_block.image_pages = idle->cntl_block.stack_pages;
