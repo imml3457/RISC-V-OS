@@ -65,11 +65,16 @@ struct process {
 extern struct process *processes[];
 extern u64 process_stacks[];
 
+extern struct process *idle_procs[];
+
 struct process* process_new();
 
 struct process* spawn_new_process_user();
 struct process* spawn_new_process_os();
 
 int spawn_process_on_hart(struct process* p, int hartid);
+
+#define what_process_on_hart(hartid) (processes[hartid])
+#define set_process_on_hart(hartid, p) (processes[hartid] = p)
 
 #endif

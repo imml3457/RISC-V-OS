@@ -115,6 +115,7 @@ int spawn_process_on_hart(struct process* p, int hartid){
 
     //making sure the hart is STOPPED and the hart we wanna spawn on is not ourselves
     if(hart != hartid && hart_status != 1){
+        kprint("here in process start\n");
         return -1;
     }
 
@@ -128,6 +129,11 @@ int spawn_process_on_hart(struct process* p, int hartid){
     //currently unused
 /*     processes[hartid] = p; */
 
+
+    if(hartid == hart){
+        CSR_WRITE("sscratch", p->frame.sscratch);
+        ((void(*)(void))spawn_thread_start)();
+    }
     //getting the physical address of the starting instruction to run
     u64 physical_addr = virt_to_phys(p->cntl_block.ptable, p->frame.sscratch);
 

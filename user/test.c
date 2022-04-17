@@ -1,5 +1,3 @@
-int main(){
-    while(1){
-        asm volatile("wfi");
-    }
+void main(){
+    while(1);
 }

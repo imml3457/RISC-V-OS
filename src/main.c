@@ -18,6 +18,7 @@
 #include <ringbuf.h>
 #include <process.h>
 #include <elf.h>
+#include <scheduler.h>
 
 
 struct trapframe SUP_GPREGS[8];
@@ -26,6 +27,8 @@ u64 process_stacks[8];
 
 extern u64 idleproc;
 extern u64 idleprocsize;
+
+struct process* idle_procs[8];
 
 void sup_trap_vector(void);
 
@@ -49,45 +52,50 @@ int main(void){
         process_stacks[i] = (u64)page_cont_falloc(1);
     }
 
-
-    //elf spawning and handling
+    int status = 0;
+/*     //elf spawning and handling */
     struct process* p = spawn_new_process_user();
-/*     u8* bytes = imalloc(sizeof(Elf64_Ehdr)); */
-/*     dsk_read(bytes, 0, sizeof(Elf64_Ehdr)); */
-/*     Elf64_Ehdr* tmp_header = (Elf64_Ehdr*)bytes; */
-
-/*     u64 program_header_offset = tmp_header->e_phoff; */
-
-/*     u8* ph_bytes = imalloc(sizeof(Elf64_Phdr) * tmp_header->e_phnum); */
-/*     dsk_read(ph_bytes, program_header_offset, sizeof(Elf64_Phdr) * tmp_header->e_phnum); */
-
-/*     int status = load_elf_file_from_block(p); */
-/*     status = spawn_process_on_hart(p, 5); */
-/*     kprint("result of status %d\n", status); */
-/*     imfree(ph_bytes); */
-/*     imfree(bytes); */
+    u8* bytes = imalloc(sizeof(Elf64_Ehdr));
+    dsk_read(bytes, 0, sizeof(Elf64_Ehdr));
+    Elf64_Ehdr* tmp_header = (Elf64_Ehdr*)bytes;
+    u64 program_header_offset = tmp_header->e_phoff;
+    u8* ph_bytes = imalloc(sizeof(Elf64_Phdr) * tmp_header->e_phnum);
+    dsk_read(ph_bytes, program_header_offset, sizeof(Elf64_Phdr) * tmp_header->e_phnum);
+    status = load_elf_file_from_block(p);
+    imfree(ph_bytes);
+    imfree(bytes);
+    p->state = PS_RUNNING;
+    schedule_add(p);
     //testing idle processes
-    struct process* idle = spawn_new_process_os();
+    struct process* idle;
+    for(int i = 1; i < 8; i++){
+        idle = spawn_new_process_os();
+        idle_procs[i] = idle;
 
-    idle->cntl_block.image_pages = idle->cntl_block.stack_pages;
-    idle->cntl_block.number_of_image_pages = 1;
-    idle->cntl_block.number_of_stack_pages = 0;
-    idle->pid = 0xfffe - 0;
-    idle->cntl_block.stack_pages = NULL;
+        idle->cntl_block.image_pages = idle->cntl_block.stack_pages;
+        idle->cntl_block.number_of_image_pages = 1;
+        idle->cntl_block.number_of_stack_pages = 0;
+        idle->pid = 0xfffe - i;
+        idle->cntl_block.stack_pages = NULL;
 
-    memcpy(idle->cntl_block.image_pages, (void*)idleproc, idleprocsize);
+        memcpy(idle->cntl_block.image_pages, (void*)idleproc, idleprocsize);
 
-    mmu_map_single(idle->cntl_block.ptable, DEFAULT_PROCESS_STACK_POINTER, (u64)idle->cntl_block.image_pages, exec);
+        mmu_map_single(idle->cntl_block.ptable, DEFAULT_PROCESS_STACK_POINTER, (u64)idle->cntl_block.image_pages, exec);
 
-    idle->frame.sepc = DEFAULT_PROCESS_STACK_POINTER;
+        idle->frame.sepc = DEFAULT_PROCESS_STACK_POINTER;
 
-    idle->quantum = 50;
-    idle->frame.satp = (SV39 | SET_PPN(idle->cntl_block.ptable) | SET_ASID(idle->pid));
-    sfence_asid(idle->pid);
+        idle->quantum = 50;
+        idle->frame.satp = (SV39 | SET_PPN(idle->cntl_block.ptable) | SET_ASID(idle->pid));
+        sfence_asid(idle->pid);
+    }
 
-    int status = spawn_process_on_hart(idle, 1);
-/*     WFI(); */
-
+    for(int i = 1; i < 8; i++){
+        if(sbi_hart_status(i) == 1){
+            status = spawn_process_on_hart(idle_procs[i], i);
+            WFI();
+        }
+    }
+    schedule(1);
     tsh();
 
 
