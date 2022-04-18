@@ -65,7 +65,7 @@ int main(void){
     imfree(ph_bytes);
     imfree(bytes);
     p->state = PS_RUNNING;
-    schedule_add(p);
+/*     schedule_add(p); */
     //testing idle processes
     struct process* idle;
     for(int i = 1; i < 8; i++){
@@ -88,14 +88,19 @@ int main(void){
         idle->frame.satp = (SV39 | SET_PPN(idle->cntl_block.ptable) | SET_ASID(idle->pid));
         sfence_asid(idle->pid);
     }
+    sched_cfs_init();
+    schedule_add_cfs(p);
 
-    for(int i = 1; i < 8; i++){
-        if(sbi_hart_status(i) == 1){
-            status = spawn_process_on_hart(idle_procs[i], i);
-            WFI();
-        }
-    }
+/*     schedule_add_cfs(idle_procs[1]); */
+/*     schedule_add_cfs(idle_procs[2]); */
     schedule(1);
+/*     for(int i = 1; i < 8; i++){ */
+/*         if(sbi_hart_status(i) == 1){ */
+/*             status = spawn_process_on_hart(idle_procs[i], i); */
+/*             WFI(); */
+/*         } */
+/*     } */
+/*     schedule(1); */
     tsh();
 
 

@@ -4,8 +4,10 @@
 #include <sbi.h>
 
 void unhandled_irq(u64 cause, u32 hartid){
-/*     kprint("Unhandled IRQ cause #: %U on Hart: %u\n", cause, hartid); */
-/*     sbi_system_off(); */
+    u64 sepc;
+    CSR_READ(sepc, "sepc");
+    kprint("Unhandled IRQ cause #: %U on Hart: %u      SEPC: %X\n", cause, hartid, sepc);
+    sbi_system_off();
 }
 
 void (*irq_table[])(u64, u32) = {

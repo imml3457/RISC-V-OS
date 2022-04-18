@@ -3,6 +3,8 @@
 #include <imalloc.h>
 #include <kprint.h>
 #include <csr.h>
+#include "tree.h"
+#include <sbi.h>
 
 Mutex scheduler_mutex = 0;
 struct scheduler_elem* process_list_head = NULL;
@@ -10,13 +12,29 @@ u16 pids = 1;
 int list_iter = 1;
 int number_of_list_elems = 0;
 
-void print_list(){
-    struct scheduler_elem* iter = process_list_head;
+int not_so_fair_initial = 0;
 
-    while(iter != NULL){
-        kprint("what is the pid of the current process %d\n", iter->p->pid);
-        iter = iter->next;
-    }
+
+
+struct cfs_tree_node{
+    struct process* p;
+    u64 virt_runtime;
+};
+
+struct cfs_tree_node current_run[8];
+
+typedef struct process* proc;
+use_tree(u64, proc);
+
+tree(u64, proc) cfs_tree;
+tree_it(u64, proc) cfs_iter;
+
+void sched_cfs_init(){
+    cfs_tree = tree_make(u64, proc);
+}
+
+void print_list(){
+    kprint("what is the len of the tree %d\n", tree_len(cfs_tree));
 }
 
 void schedule_add(struct process* p){
@@ -55,6 +73,7 @@ void schedule_add(struct process* p){
     mutex_unlock(&scheduler_mutex);
 }
 
+
 static struct process* schedule_next(int hartid){
     struct scheduler_elem* iter = process_list_head;
     mutex_spinlock(&scheduler_mutex);
@@ -85,13 +104,49 @@ static struct process* schedule_next(int hartid){
     return NULL;
 }
 
+void schedule_add_cfs(struct process* p){
+    mutex_spinlock(&scheduler_mutex);
+    if(p->pid == 0){
+        p->pid = pids;
+        p->frame.satp = (SV39 | SET_PPN(p->cntl_block.ptable) | SET_ASID(p->pid));
+        sfence_asid(p->pid);
+    }
+    pids++;
+    tree_insert(cfs_tree, not_so_fair_initial, p);
+    not_so_fair_initial++;
+    mutex_unlock(&scheduler_mutex);
+}
+
+static struct process* schedule_next_cfs(int hartid){
+    mutex_spinlock(&scheduler_mutex);
+    cfs_iter = tree_begin(cfs_tree);
+    while(tree_it_good(cfs_iter)){
+        struct process* temp = tree_it_val(cfs_iter);
+        if(temp->state != PS_DEAD && temp->on_hart == -1){
+            if(temp->state == PS_RUNNING){
+                temp->on_hart = hartid;
+                current_run[hartid].p = temp;
+                current_run[hartid].virt_runtime = sbi_get_time();
+                tree_delete(cfs_tree, tree_it_key(cfs_iter));
+                mutex_unlock(&scheduler_mutex);
+                return temp;
+            }
+        }
+        tree_it_next(cfs_iter);
+    }
+    return NULL;
+}
+
 static void scheduler_stop_proc(int hartid){
     struct process* p = what_process_on_hart(hartid);
-
     if(p == NULL){
         return;
     }
-
+    mutex_spinlock(&scheduler_mutex);
+    tree_insert(cfs_tree, sbi_get_time() - current_run[hartid].virt_runtime, current_run[hartid].p);
+    current_run[hartid].p = NULL;
+    current_run[hartid].virt_runtime = 0;
+    mutex_unlock(&scheduler_mutex);
     CSR_READ(p->frame.sepc, "sepc");
     p->on_hart = -1;
 }
@@ -99,13 +154,13 @@ static void scheduler_stop_proc(int hartid){
 
 void schedule(int hartid){
     scheduler_stop_proc(hartid);
-    struct process* temp = schedule_next(hartid);
+    struct process* temp = schedule_next_cfs(hartid);
     if(temp == NULL){
         temp = idle_procs[hartid];
     }
-
     int status = spawn_process_on_hart(temp, hartid);
-    kprint("status of the spawn %d\n", status);
+/*     kprint("status of the spawn %d\n", status); */
 }
+
 
 
