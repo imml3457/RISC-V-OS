@@ -15,6 +15,8 @@ void supcall_hart_start(u64*, u64);
 void supcall_hart_stop(u64*, u64);
 void supcall_get_time(u64*, u64);
 void supcall_set_timecmp(u64*, u64);
+void supcall_add_timecmp(u64*, u64);
+void supcall_ack_timer(u64*, u64);
 void supcall_whoami(u64*, u64);
 extern void (*supcall_table[])(u64*, u64);
 

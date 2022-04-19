@@ -12,6 +12,8 @@ struct trapframe{
     u64 pc;
 };
 
+void timer_handle(u64, u32);
+
 extern struct trapframe SUP_GPREGS[8];
 
 void unhandled_irq(u64, u32);

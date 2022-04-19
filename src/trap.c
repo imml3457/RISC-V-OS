@@ -2,6 +2,9 @@
 #include <kprint.h>
 #include <plic.h>
 #include <sbi.h>
+#include <scheduler.h>
+
+
 
 void unhandled_irq(u64 cause, u32 hartid){
     u64 sepc;
@@ -34,7 +37,7 @@ void (*irq_table[])(u64, u32) = {
     unhandled_irq,
     unhandled_irq,
     unhandled_irq,        //4
-    unhandled_irq,
+    timer_handle,
     unhandled_irq,
     unhandled_irq,
     unhandled_irq,
@@ -47,6 +50,11 @@ void (*irq_table[])(u64, u32) = {
 
 void handle_irq(u64 cause, u32 hartid){
     irq_table[cause](cause, hartid);
+}
+
+void timer_handle(u64 cause, u32 hartid){
+    sbi_ack_timer();
+    schedule(hartid);
 }
 
 
