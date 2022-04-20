@@ -1,5 +1,6 @@
 #include <clint.h>
 #include <kprint.h>
+#include <csr.h>
 
 
 void clint_set_msip(u64 hart){
@@ -33,4 +34,14 @@ u64 clint_get_time(void){
 }
 void clint_add_mtimecmp(u64 hart, u64 timeval){
     clint_set_mtimecmp(hart, clint_get_time() + timeval);
+}
+
+void handle_mtip(u64 cause, u64 hart){
+    unsigned long sip;
+    CSR_READ(sip, "mip");
+    CSR_WRITE("mip", SET_SIP_STIP);
+
+    kprint("TIMER\n");
+    clint_set_mtimecmp(hart, CLINT_MTIMECMP_INFINITE);
+
 }

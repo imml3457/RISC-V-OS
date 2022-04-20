@@ -9,7 +9,7 @@
 void unhandled_irq(u64 cause, u32 hartid){
     u64 sepc;
     CSR_READ(sepc, "sepc");
-    kprint("Unhandled IRQ cause #: %U on Hart: %u      SEPC: %X\n", cause, hartid, sepc);
+    kprint("Unhandled IRQ KERNEL cause #: %U on Hart: %u      SEPC: %X\n", cause, hartid, sepc);
     sbi_system_off();
 }
 

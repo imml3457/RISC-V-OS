@@ -24,7 +24,7 @@ sup_trap_vector:
             csrrw         t6, sscratch, t6
             savegp        31, t5
             csrr          t0, sstatus
-            la sp, _stack_end
+            la sp, _trap_stack_end
             addi sp, sp, -2048
             call          sup_trap_handler
             csrr          t6, sscratch

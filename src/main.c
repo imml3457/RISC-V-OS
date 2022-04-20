@@ -38,7 +38,7 @@ int main(void){
     plic_init();
     CSR_WRITE("stvec", sup_trap_vector);
     CSR_WRITE("sscratch", &(SUP_GPREGS[0].gpregs[0]));
-    CSR_WRITE("sie", (1 << 9));
+    CSR_WRITE("sie", (1 << 9) | SET_SIP_STIP);
     init_cont_page();
     page_table* p_table = page_cont_falloc(1);
     kernel_page_table = p_table;
@@ -88,18 +88,17 @@ int main(void){
         idle->frame.satp = (SV39 | SET_PPN(idle->cntl_block.ptable) | SET_ASID(idle->pid));
         sfence_asid(idle->pid);
     }
+    for(int i = 1; i < 8; i++){
+        if(!spawn_process_on_hart(idle_procs[i], i)){
+            kprint("failed to spawn idle proc on hart %d\n", i);
+        }
+    }
     sched_cfs_init();
     schedule_add_cfs(p);
-
+    sbi_add_timer(1, 200000000);
 /*     schedule_add_cfs(idle_procs[1]); */
 /*     schedule_add_cfs(idle_procs[2]); */
-    schedule(1);
-/*     for(int i = 1; i < 8; i++){ */
-/*         if(sbi_hart_status(i) == 1){ */
-/*             status = spawn_process_on_hart(idle_procs[i], i); */
-/*             WFI(); */
-/*         } */
-/*     } */
+/*     schedule(1); */
 /*     schedule(1); */
     tsh();
 

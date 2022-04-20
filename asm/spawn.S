@@ -76,7 +76,7 @@ _spawn_trap:
 
 
     #this could cause issues
-    #csrr   t6, sscratch
+    csrr   t6, sscratch
 
     ld     t5, 560(t6)
     ld     sp, 568(t6)

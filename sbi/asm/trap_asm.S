@@ -32,6 +32,9 @@ sbi_trap_vector:
             la            sp, _stack_end
             la            gp, __global_pointer$
 .option pop
+            csrr          t0, mhartid
+            slli          t0, t0, 12
+            sub           sp, sp, t0
             call          c_trap_handler
             csrr          t6, mscratch
 

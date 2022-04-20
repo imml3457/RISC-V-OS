@@ -35,7 +35,7 @@ void (*irq_table[])(u64, u64) = {
     unhandled_irq,        //4
     unhandled_irq,
     unhandled_irq,
-    clint_set_mtimecmp,
+    handle_mtip,
     unhandled_irq,
     unhandled_irq,        //9
     unhandled_irq,

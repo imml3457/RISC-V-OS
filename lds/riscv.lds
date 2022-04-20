@@ -57,6 +57,8 @@ SECTIONS
 
   PROVIDE(_stack_start = .);
   PROVIDE(_stack_end = _stack_start + 8K * 8);
+  PROVIDE(_trap_stack_start = .);
+  PROVIDE(_trap_stack_end = _trap_stack_start + 8K * 2);
   PROVIDE(_heap_start = _stack_end);
   PROVIDE(_heap_end = _memory_end);
 }
