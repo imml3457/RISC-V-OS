@@ -91,6 +91,14 @@ int strcpy(char* str1, char* str2){
     return 0;
 }
 
+int strlen(const char* str){
+    int len = 0;
+    while(str[len]){
+        len++;
+    }
+    return len;
+}
+
 int atoi(const char* str){
     int result = 0;
 
@@ -150,6 +158,23 @@ void* memcpy(void* dst, void* src, u64 size){
         rem--;
     }
     return dst;
+}
+
+void memmove(void* dst, void* src, u64 size){
+    char* csrc = (char*)src;
+    char* cdest = (char*)dst;
+
+    char* temp = imalloc(sizeof(char) * size);
+
+    for(int i = 0; i < size; i++){
+        *(temp + i) = *(csrc + i);
+    }
+
+    for(int i = 0; i < size; i++){
+        *(cdest + i) = *(temp + i);
+    }
+
+    imfree(temp);
 }
 
 static inline s32 is_space(s32 c) {

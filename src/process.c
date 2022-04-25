@@ -5,7 +5,6 @@
 #include <kprint.h>
 #include <sbi.h>
 
-struct process* processes[8];
 
 extern u64 spawn_thread_start;
 extern u64 spawn_thread_end;
@@ -127,10 +126,7 @@ int spawn_process_on_hart(struct process* p, int hartid){
 
     //what hart has the current process
     //currently unused
-/*     processes[hartid] = p; */
-
-
-/*     sbi_add_timer(hartid, p->quantum * PROC_DEFAULT_CONTEXT_TIMER); */
+    sbi_add_timer(hartid, p->quantum * PROC_DEFAULT_CONTEXT_TIMER);
     if(hartid == hart){
         CSR_WRITE("sscratch", p->frame.sscratch);
         ((void(*)(void))spawn_thread_start)();

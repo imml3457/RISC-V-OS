@@ -72,6 +72,8 @@ void supcall_add_timecmp(u64* s, u64 hart){
 }
 
 void supcall_ack_timer(u64* s, u64 hart){
+    (void) hart;
+    (void) s;
     u64 mip;
     CSR_READ(mip, "mip");
     CSR_WRITE("mip", mip & ~SET_SIP_STIP);

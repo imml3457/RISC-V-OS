@@ -75,7 +75,7 @@ _spawn_trap:
     savegp 31, t5
 
 
-    #this could cause issues
+    //this could cause issues
     csrr   t6, sscratch
 
     ld     t5, 560(t6)

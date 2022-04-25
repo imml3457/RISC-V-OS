@@ -53,6 +53,7 @@ void handle_irq(u64 cause, u32 hartid){
 }
 
 void timer_handle(u64 cause, u32 hartid){
+    (void) cause;
     sbi_ack_timer();
     schedule(hartid);
 }

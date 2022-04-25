@@ -37,11 +37,10 @@ void clint_add_mtimecmp(u64 hart, u64 timeval){
 }
 
 void handle_mtip(u64 cause, u64 hart){
+    (void) cause;
     unsigned long sip;
     CSR_READ(sip, "mip");
     CSR_WRITE("mip", SET_SIP_STIP);
-
-    kprint("TIMER\n");
     clint_set_mtimecmp(hart, CLINT_MTIMECMP_INFINITE);
 
 }

@@ -10,6 +10,8 @@ int strncmp(char*, char*, u32);
 
 int strcpy(char*, char*);
 
+int strlen(const char*);
+
 void exec_cmd(char*);
 
 void test_hart(void);
@@ -23,6 +25,8 @@ int atoi(const char*);
 void* memset(void*, u32, u64);
 
 void* memcpy(void*, void*, u64);
+
+void memmove(void*, void*, u64);
 
 void print_unix_time(void);
 

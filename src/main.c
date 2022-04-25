@@ -19,11 +19,14 @@
 #include <process.h>
 #include <elf.h>
 #include <scheduler.h>
+#include <minix3.h>
+#include <array.h>
 
 
 struct trapframe SUP_GPREGS[8];
 
 u64 process_stacks[8];
+struct process* processes[8];
 
 extern u64 idleproc;
 extern u64 idleprocsize;
@@ -32,41 +35,7 @@ struct process* idle_procs[8];
 
 void sup_trap_vector(void);
 
-int main(void){
-    kprint_set_putc(sbi_putchar);
-    kprint_set_getc(sbi_getchar);
-    plic_init();
-    CSR_WRITE("stvec", sup_trap_vector);
-    CSR_WRITE("sscratch", &(SUP_GPREGS[0].gpregs[0]));
-    CSR_WRITE("sie", (1 << 9) | SET_SIP_STIP);
-    init_cont_page();
-    page_table* p_table = page_cont_falloc(1);
-    kernel_page_table = p_table;
-    mmu_init();
-    imalloc_init();
-    initpci();
-    pci_set_capes();
-    start_gpu();
-
-    for(int i = 0; i < 8; i++){
-        process_stacks[i] = (u64)page_cont_falloc(1);
-    }
-
-    int status = 0;
-/*     //elf spawning and handling */
-    struct process* p = spawn_new_process_user();
-    u8* bytes = imalloc(sizeof(Elf64_Ehdr));
-    dsk_read(bytes, 0, sizeof(Elf64_Ehdr));
-    Elf64_Ehdr* tmp_header = (Elf64_Ehdr*)bytes;
-    u64 program_header_offset = tmp_header->e_phoff;
-    u8* ph_bytes = imalloc(sizeof(Elf64_Phdr) * tmp_header->e_phnum);
-    dsk_read(ph_bytes, program_header_offset, sizeof(Elf64_Phdr) * tmp_header->e_phnum);
-    status = load_elf_file_from_block(p);
-    imfree(ph_bytes);
-    imfree(bytes);
-    p->state = PS_RUNNING;
-/*     schedule_add(p); */
-    //testing idle processes
+static void setup_idle_procs(){
     struct process* idle;
     for(int i = 1; i < 8; i++){
         idle = spawn_new_process_os();
@@ -88,18 +57,55 @@ int main(void){
         idle->frame.satp = (SV39 | SET_PPN(idle->cntl_block.ptable) | SET_ASID(idle->pid));
         sfence_asid(idle->pid);
     }
-    for(int i = 1; i < 8; i++){
-        if(!spawn_process_on_hart(idle_procs[i], i)){
-            kprint("failed to spawn idle proc on hart %d\n", i);
-        }
-    }
-    sched_cfs_init();
-    schedule_add_cfs(p);
-    sbi_add_timer(1, 200000000);
-/*     schedule_add_cfs(idle_procs[1]); */
-/*     schedule_add_cfs(idle_procs[2]); */
-/*     schedule(1); */
-/*     schedule(1); */
+}
+
+int main(void){
+    kprint_set_putc(sbi_putchar);
+    kprint_set_getc(sbi_getchar);
+    plic_init();
+    CSR_WRITE("stvec", sup_trap_vector);
+    CSR_WRITE("sscratch", &(SUP_GPREGS[0].gpregs[0]));
+    CSR_WRITE("sie", (1 << 9) | SET_SIP_STIP);
+    init_cont_page();
+    page_table* p_table = page_cont_falloc(1);
+    kernel_page_table = p_table;
+    mmu_init();
+    imalloc_init();
+    initpci();
+    pci_set_capes();
+    start_gpu();
+    setup_idle_procs();
+
+/*     for(int i = 0; i < 8; i++){ */
+/*         process_stacks[i] = (u64)page_cont_falloc(1); */
+/*     } */
+
+/*     //elf spawning and handling */
+/*     int status = 0; */
+/*     struct process* p = spawn_new_process_user(); */
+/*     u8* bytes = imalloc(sizeof(Elf64_Ehdr)); */
+/*     dsk_read(bytes, 0, sizeof(Elf64_Ehdr)); */
+/*     Elf64_Ehdr* tmp_header = (Elf64_Ehdr*)bytes; */
+/*     u64 program_header_offset = tmp_header->e_phoff; */
+/*     u8* ph_bytes = imalloc(sizeof(Elf64_Phdr) * tmp_header->e_phnum); */
+/*     dsk_read(ph_bytes, program_header_offset, sizeof(Elf64_Phdr) * tmp_header->e_phnum); */
+/*     status = load_elf_file_from_block(p); */
+/*     imfree(ph_bytes); */
+/*     imfree(bytes); */
+/*     p->state = PS_RUNNING; */
+
+
+    //testing idle processes
+/*     sched_cfs_init(); */
+/*     for(int i = 1; i < 8; i++){ */
+/*         schedule(i); */
+/*     } */
+/*     schedule_add_cfs(p); */
+
+
+    init_minix();
+
+
     tsh();
 
 

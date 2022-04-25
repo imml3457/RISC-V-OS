@@ -6,7 +6,10 @@
 #include <hart.h>
 
 void unhandled_irq(u64 cause, u64 hartid){
-/*     kprint("get gud I haven't handled this yed %U on hart %U\n", cause, hartid); */
+    u64 sepc;
+    CSR_READ(sepc, "sepc");
+    kprint("Unhandled IRQ KERNEL cause #: %U on Hart: %u      SEPC: %X\n", cause, hartid, sepc);
+    *((unsigned short *)0x100000) = 0x5555;
 }
 
 void (*irq_table[])(u64, u64) = {

@@ -155,9 +155,10 @@
 #define s32 SINT(32)
 #define s64 SINT(64)
 
-#define ALIGN(x, align)      ((__typeof(x))((((u64)(x)) + (((u64)align) - 1ULL)) & ~(((u64)align) - 1ULL)))
-#define IS_ALIGNED(x, align) (!(((u64)(x)) & (((u64)align) - 1ULL)))
-#define IS_POWER_OF_TWO(x)   ((x) != 0 && IS_ALIGNED((x), (x)))
+
+#define UP_ALIGN(x, align) (((x) + (align) - 1) & -(align))
+#define DOWN_ALIGN(x, align) ((x) & -(align))
+
 
 #define KB(x) ((x) * 1024ULL)
 #define MB(x) ((x) * 1024ULL * KB(1ULL))

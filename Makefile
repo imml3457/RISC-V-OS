@@ -20,7 +20,7 @@ SBI_KERNEL=sbi.elf
 #### QEMU STUFF
 QEMU?=qemu-system-riscv64
 QEMU_DEBUG_PIPE=debug.pipe
-QEMU_HARD_DRIVE=hdd.dsk
+QEMU_HARD_DRIVE=minix3test.dsk
 QEMU_BIOS=./sbi/sbi.elf
 QEMU_DEBUG=guest_errors,unimp
 QEMU_MACH=virt

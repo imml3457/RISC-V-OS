@@ -74,35 +74,35 @@ void schedule_add(struct process* p){
 }
 
 
-static struct process* schedule_next(int hartid){
-    struct scheduler_elem* iter = process_list_head;
-    mutex_spinlock(&scheduler_mutex);
-    for(int i = 1; i < list_iter; i++){
-        iter = iter->next;
-    }
-
-    while(iter != NULL){
-        if(iter->p->state != PS_DEAD && iter->p->on_hart == -1){
-            if(iter->p->state == PS_RUNNING){
-                iter->p->on_hart = hartid;
-                kprint("here in sched next\n");
-                mutex_unlock(&scheduler_mutex);
-                return iter->p;
-            }
-        }
-        list_iter++;
-        iter = iter->next;
-    }
-
-    if(list_iter == number_of_list_elems){
-        list_iter = 0;
-    }
-
-
-    //got to the bottom of the list with no process that can be ran
-    mutex_unlock(&scheduler_mutex);
-    return NULL;
-}
+/* static struct process* schedule_next(int hartid){ */
+/*     struct scheduler_elem* iter = process_list_head; */
+/*     mutex_spinlock(&scheduler_mutex); */
+/*     for(int i = 1; i < list_iter; i++){ */
+/*         iter = iter->next; */
+/*     } */
+/*  */
+/*     while(iter != NULL){ */
+/*         if(iter->p->state != PS_DEAD && iter->p->on_hart == -1){ */
+/*             if(iter->p->state == PS_RUNNING){ */
+/*                 iter->p->on_hart = hartid; */
+/*                 kprint("here in sched next\n"); */
+/*                 mutex_unlock(&scheduler_mutex); */
+/*                 return iter->p; */
+/*             } */
+/*         } */
+/*         list_iter++; */
+/*         iter = iter->next; */
+/*     } */
+/*  */
+/*     if(list_iter == number_of_list_elems){ */
+/*         list_iter = 0; */
+/*     } */
+/*  */
+/*  */
+/*     //got to the bottom of the list with no process that can be ran */
+/*     mutex_unlock(&scheduler_mutex); */
+/*     return NULL; */
+/* } */
 
 void schedule_add_cfs(struct process* p){
     mutex_spinlock(&scheduler_mutex);
@@ -119,36 +119,39 @@ void schedule_add_cfs(struct process* p){
 
 static struct process* schedule_next_cfs(int hartid){
     mutex_spinlock(&scheduler_mutex);
-    cfs_iter = tree_begin(cfs_tree);
-    while(tree_it_good(cfs_iter)){
+/*     cfs_iter = tree_begin(cfs_tree); */
+/*     kprint("what is the address of %X\n", &cfs_tree); */
+    tree_traverse(cfs_tree, cfs_iter){
         struct process* temp = tree_it_val(cfs_iter);
         if(temp->state != PS_DEAD && temp->on_hart == -1){
             if(temp->state == PS_RUNNING){
                 temp->on_hart = hartid;
                 current_run[hartid].p = temp;
                 current_run[hartid].virt_runtime = sbi_get_time();
-                tree_delete(cfs_tree, tree_it_key(cfs_iter));
+                u64 temp_key = tree_it_key(cfs_iter);
+                tree_delete(cfs_tree, temp_key);
                 mutex_unlock(&scheduler_mutex);
                 return temp;
             }
         }
-        tree_it_next(cfs_iter);
     }
+    mutex_unlock(&scheduler_mutex);
     return NULL;
 }
 
 static void scheduler_stop_proc(int hartid){
-    struct process* p = what_process_on_hart(hartid);
+    mutex_spinlock(&scheduler_mutex);
+    struct process* p = current_run[hartid].p;
     if(p == NULL){
+        mutex_unlock(&scheduler_mutex);
         return;
     }
-    mutex_spinlock(&scheduler_mutex);
     tree_insert(cfs_tree, sbi_get_time() - current_run[hartid].virt_runtime, current_run[hartid].p);
     current_run[hartid].p = NULL;
     current_run[hartid].virt_runtime = 0;
-    mutex_unlock(&scheduler_mutex);
     CSR_READ(p->frame.sepc, "sepc");
     p->on_hart = -1;
+    mutex_unlock(&scheduler_mutex);
 }
 
 
@@ -157,9 +160,9 @@ void schedule(int hartid){
     struct process* temp = schedule_next_cfs(hartid);
     if(temp == NULL){
         temp = idle_procs[hartid];
+        current_run[hartid].p = NULL;
+        current_run[hartid].virt_runtime = 0;
     }
-    int status = spawn_process_on_hart(temp, hartid);
+    spawn_process_on_hart(temp, hartid);
 /*     kprint("status of the spawn %d\n", status); */
 }
-
-
