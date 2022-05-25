@@ -1,4 +1,4 @@
-# Ian Mulet
+# RISC-V OS
 
 A functioning OS built from scratch. This was done using QEMU and RISC-V toolchain, most of this was a learning process to fully understand the inner workings of an OS. Not everything is complete or 100% working, although there are many features that are finished.
 
