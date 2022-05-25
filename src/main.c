@@ -21,6 +21,7 @@
 #include <scheduler.h>
 #include <minix3.h>
 #include <array.h>
+#include <vfs.h>
 
 
 struct trapframe SUP_GPREGS[8];
@@ -104,6 +105,7 @@ int main(void){
 
 
     init_minix();
+    File* tmp_file = get_file("/nest1/nest2/nest3/nest4/.././nest2/nest3");
 
 
     tsh();

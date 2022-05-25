@@ -7,9 +7,27 @@
 #include <vfs.h>
 
 #define MAX_ZONES 7
+u32 if_root = 0;
 
-static void minix_populate(u32 node_number, const struct superblock* super, char* buffer){
+File* root_file;
+
+static File* minix_populate(u32 node_number, const struct superblock* super, char* buffer, File* parent){
     void* block_buffer = imalloc(BLOCK_SIZE);
+    File* tmp_file = imalloc(sizeof(File));
+    tmp_file->children = array_make(File*);
+    tmp_file->name = imalloc(60 * sizeof(char));
+
+    if(if_root == 0){
+        tmp_file->name = "/";
+        tmp_file->parent_link = NULL;
+        if_root = 1;
+    }
+    else{
+        strcpy(tmp_file->name, buffer);
+/*         kprint("what is the name %s\n", tmp_file->name); */
+        tmp_file->parent_link = parent;
+        array_push(parent->children, tmp_file);
+    }
     memset(block_buffer, 0, BLOCK_SIZE);
     struct inode n;
     struct directory_entry dirent;
@@ -23,13 +41,14 @@ static void minix_populate(u32 node_number, const struct superblock* super, char
 
     memcpy(&n, block_buffer + get_block_size, sizeof(n));
 
+    tmp_file->inode_number = node_number;
+    tmp_file->mode = n.mode;
+
     if(strlen(buffer) > 0){
-        kprint("minix test: %s\n", buffer);
+/*         kprint("minix test: %s\n", buffer); */
     }
     u32 len;
     if(S_FMT(n.mode) == S_IFDIR){
-        len = strlen(buffer);
-        strcpy(buffer + len, "/");
 
         for(int i = 0; i < MAX_ZONES; i++){
             if(n.zones[i] == 0){
@@ -42,23 +61,22 @@ static void minix_populate(u32 node_number, const struct superblock* super, char
             dsk_read(block_buffer, byte, BLOCK_SIZE);
             for(u32 i = 128; i < n.size; i += sizeof(struct directory_entry)){
                  memcpy(&dirent, block_buffer + i, sizeof(struct directory_entry));
-                 strcpy(buffer + len + 1, dirent.name);
-                 minix_populate(dirent.inode, super, buffer);
+/*                  strcpy(buffer + len + 1, dirent.name); */
+                 minix_populate(dirent.inode, super, dirent.name, tmp_file);
             }
         }
 
         if(n.zones[ZONE_SINGLE_INDR] != 0){
-            kprint("in the indirect\n");
             byte = n.zones[ZONE_SINGLE_INDR] * BLOCK_SIZE;
             dsk_read(block_buffer, byte, BLOCK_SIZE);
         }
-
     }
     else if(S_FMT(n.mode) == S_IFREG){
-        len = strlen(buffer);
     }
 
-    imfree(block_buffer);
+/*     imfree(block_buffer); */
+/*     kprint("tmp file size %d and name %s\n", array_len(tmp_file->children), tmp_file->name); */
+    return tmp_file;
 }
 
 
@@ -76,6 +94,5 @@ void init_minix(){
         kprint("I am not getting a minix3 filesystem\n");
     }
 
-    minix_populate(1, &super, path);
-
+    root_file = minix_populate(1, &super, path, NULL);
 }
